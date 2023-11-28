@@ -32,6 +32,10 @@ export class User extends Model<User, UserCreateAttrs> {
     @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
     isEmailVerified: boolean;
 
+    @ApiProperty({ example: 'nf32uy798b&r23f', description: 'Токен активации почты' })
+    @Column({ type: DataType.STRING, allowNull: true })
+    activationToken: string;
+
     @ApiProperty({ example: '', description: '' })
     @Column({ type: DataType.STRING, allowNull: true })
     activity: string; // Пока хз что это
