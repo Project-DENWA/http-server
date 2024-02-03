@@ -3,7 +3,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { v4 } from 'uuid';
-import { User } from 'src/users/users.model';
+import { User } from 'src/models/users.model';
 import { MailerService } from '@nestjs-modules/mailer';
 import { JwtService } from '@nestjs/jwt';
 
