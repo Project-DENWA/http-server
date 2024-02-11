@@ -3,6 +3,8 @@ import { EnvFilePathModule } from "./providers/envfilepath.module";
 import { PostgresModule } from "./providers/postgres.module";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
+import { SessionsModule } from "./sessions/sessions.module";
+import { DIYMailerModule } from "./providers/mailer.module";
 
 @Module({
   controllers: [],
@@ -13,6 +15,7 @@ import { AuthModule } from "./auth/auth.module";
     UsersModule,
     AuthModule,
     SessionsModule,
+    DIYMailerModule,
     // ScheduleModule.forRoot(),
   ],
 })

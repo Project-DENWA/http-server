@@ -30,6 +30,7 @@
     "@nestjs/schedule": "^4.0.0",
     "@nestjs/swagger": "^7.1.13",
     "@nestjs/typeorm": "^10.0.2",
+    "@types/speakeasy": "^2.0.10",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
@@ -42,6 +43,7 @@
     "pg-hstore": "^2.3.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "speakeasy": "^2.0.0",
     "typeorm": "^0.3.20",
     "uuid": "^9.0.1",
     "viem": "^1.18.9"
