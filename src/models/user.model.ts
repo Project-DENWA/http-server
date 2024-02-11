@@ -8,12 +8,14 @@ import {
   UpdateDateColumn,
   BaseEntity,
   PrimaryColumn,
+  OneToMany,
 } from 'typeorm';
 import { MetaModel } from './meta.model';
 import { EmailModel } from './email.model';
 import { TfaModel } from './tfa.model';
 import { AvatarModel } from './avatar.model';
 import { NotificationModel } from './notification.model';
+import { SessionModel } from './sessions.model';
 
 @Entity({ name: 'users' })
 export class UserModel extends BaseEntity {
@@ -74,9 +76,9 @@ export class UserModel extends BaseEntity {
   @JoinColumn()
   public notification: NotificationModel;
 
-//   @OneToMany(() => SessionModel, (session) => session.user)
-//   @JoinColumn()
-//   public sessions: SessionModel[];
+  @OneToMany(() => SessionModel, (session) => session.user)
+  @JoinColumn()
+  public sessions: SessionModel[];
 
 //   @OneToMany(() => ComplaintModel, (complaint) => complaint.user)
 //   @JoinColumn()

@@ -12,7 +12,7 @@ import { AuthModule } from "./auth/auth.module";
     PostgresModule,
     UsersModule,
     AuthModule,
-    // SessionsModule,
+    SessionsModule,
     // ScheduleModule.forRoot(),
   ],
 })

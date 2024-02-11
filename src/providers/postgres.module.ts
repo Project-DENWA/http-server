@@ -7,6 +7,7 @@ import { NotificationModel } from 'src/models/notification.model';
 import { UserModel } from 'src/models/user.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TfaModel } from 'src/models/tfa.model';
+import { SessionModel } from 'src/models/sessions.model';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TfaModel } from 'src/models/tfa.model';
             TfaModel,
             NotificationModel,
             UserModel,
+            SessionModel,
           ],
           autoLoadEntities: true,
           synchronize: true,
