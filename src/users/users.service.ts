@@ -1,32 +1,57 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { User } from './users.model';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { AvatarModel } from "src/models/avatar.model";
+import { EmailModel } from "src/models/email.model";
+import { MetaModel } from "src/models/meta.model";
+import { NotificationModel } from "src/models/notification.model";
+import { TfaModel } from "src/models/tfa.model";
+import { UserModel } from "src/models/user.model";
+import { Repository } from "typeorm";
+import { CreateUserDto } from "./dto/create-user.dto";
 
-@Injectable()
+Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(UserModel)
+    private usersRepository: Repository<UserModel>,
+    @InjectRepository(MetaModel)
+    private metaRepository: Repository<MetaModel>,
+    @InjectRepository(TfaModel)
+    private tfaRepository: Repository<TfaModel>,
+    @InjectRepository(EmailModel)
+    private emailRepository: Repository<EmailModel>,
+    @InjectRepository(AvatarModel)
+    private avatarRepository: Repository<AvatarModel>,
+    @InjectRepository(NotificationModel)
+    private notificationRepository: Repository<NotificationModel>,
+  ) {}
 
-    constructor(
-        @InjectModel(User) private userRepository: typeof User,
-    ) {}
+  public async create(dto: CreateUserDto, activationToken: string) {
 
-    async create(dto: CreateUserDto, activationToken: string) {
-        const user = new User(dto);
-        user.activationToken = activationToken;
+    const emailModel = new EmailModel();
+    emailModel.email = dto.email;
+    emailModel.token = activationToken;
 
-        await user.save();
-        return user;
-    }
+    const metaModel = new MetaModel();
+    metaModel.name = dto.username;
 
-    async getUserByEmail(email: string) {
-        return await this.userRepository.findOne({
-          where: { email },
-        });
-      }
+    const userModel = new UserModel();
+    userModel.fullname = dto.fullname;
+    userModel.password = dto.password;
+    userModel.email = emailModel;
+    userModel.tfa = new TfaModel();
+    userModel.meta = metaModel;
+    userModel.avatar = new AvatarModel();
+    userModel.notification = new NotificationModel();
 
-    async getUserByActivationToken(activationToken: string) {
-    return await this.userRepository.findOne({
-        where: { activationToken },
-    });
-    }
+    await this.emailRepository.save(userModel.email);
+    await this.metaRepository.save(userModel.meta);
+    await this.tfaRepository.save(userModel.tfa);
+    await this.avatarRepository.save(userModel.avatar);
+    await this.notificationRepository.save(userModel.notification);
+    await this.usersRepository.save(userModel);
+
+    return userModel;
+  }
+
 }
