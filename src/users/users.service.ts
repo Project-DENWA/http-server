@@ -102,6 +102,46 @@ export class UsersService {
     return userModel;
   }
 
+  public async getAll(): Promise<UserModel[]> {
+    return await this.usersRepository.find({
+      relations: {
+        meta: true,
+        email: true,
+        tfa: true,
+        avatar: true,
+        notification: true,
+        sessions: true,
+      },
+      select: {
+        meta: { id: true, name: true, description: true },
+        email: { id: true, email: true, verified: true, token: true },
+        tfa: { id: true, secret: true, token: true },
+        avatar: { id: true, icon: true, cover: true },
+        notification: {
+          news: true,
+          messages: true,
+        },
+      },
+    });
+  }
+  
+  public async activateAccount(emailToken: string): Promise<ReturnObj> {
+    const userModel = await this.getUser({ emailToken });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.emailRepository.update(
+      { id: userModel.email.id },
+      { verified: true, token: null },
+    );
+    return {
+      ok: true,
+      message: 'The user have been successfully activated',
+      result: null,
+    };
+  }
+
   private async sendEmail(
     userModel: UserModel,
     subject: string,

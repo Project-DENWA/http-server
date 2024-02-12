@@ -158,4 +158,23 @@ export class AuthService {
           },
         };
       }
+
+      async refreshAccessToken(refreshToken: string): Promise<ReturnObj> {
+        const decoded = this.jwtService.verify(refreshToken);
+        const session =
+          await this.sessionService.findSessionByRefreshToken(refreshToken);
+    
+         if (!session || session.user.id !== decoded.userId) {
+          throw new UnauthorizedException('Invalid refresh token');
+        }
+    
+        const userModel = await this.userService.getUser({ id: session.user.id });
+        const accessToken = this.createAccessToken(userModel);
+    
+        return {
+          ok: true,
+          message: 'Token successfully refreshed',
+          result: accessToken
+        };
+      }
 }
