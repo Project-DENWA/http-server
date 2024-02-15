@@ -16,8 +16,9 @@ export class CreateUserDto {
 
   @ApiProperty({ example: 'ExampleName', description: 'Username' })
   @IsString({ message: 'The username field must be a string' })
-  @IsLettersNumbers({
-    message: 'Username must contain only latin letters and numbers',
+  @Matches(/^[A-Za-z0-9 .,'!&]+$/, {
+    message:
+      'Username must contain only latin letters, number and special characters',
   })
   readonly username: string;
 
