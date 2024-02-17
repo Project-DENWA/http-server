@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PublicUserDto } from './dto/public-user.dto';
 import { UsersService } from './users.service';
@@ -6,6 +6,7 @@ import { AuthenticatedRequest } from 'src/interfaces/authenticated-request.inter
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import { UserModel } from 'src/models/user.model';
 import { EmailVerifiedGuard } from './guards/email-verified.guard';
+import { UpdateUsernameDto } from './dto/update-username.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -88,6 +89,36 @@ export class UsersController {
         return {
           message: 'cool',
         };
+      }
+
+      @ApiOperation({ summary: 'Username update' })
+      @Patch('update-username')
+      @ApiHeader({
+        name: 'Authorization',
+        description: 'JWT access token in the format "Bearer <token>"',
+        required: true,
+      })
+      @ApiResponse({ status: 200, description: 'Successful mail update' })
+      @ApiResponse({
+        description: 'Message that user not found',
+        status: 404,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                message: { type: 'string', example: 'User not found' },
+              },
+            },
+          },
+        },
+      })
+      @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+      updateUsername(
+        @Req() req: AuthenticatedRequest,
+        @Body() updateUsernameDto: UpdateUsernameDto,
+      ) {
+        return this.userService.updateUsername(req.user.id, updateUsernameDto);
       }
 
       

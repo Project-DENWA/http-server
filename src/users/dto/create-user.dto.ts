@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
 import { minLetters } from '../decorators/min-letters.decorator';
 import { minNumbers } from '../decorators/min-numbers.decorator';
-import { IsLettersNumbers } from '../decorators/is-letters-numbers.decorator';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'Ivanov Ivan', description: 'Full name' })

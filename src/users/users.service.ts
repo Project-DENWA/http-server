@@ -10,6 +10,8 @@ import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { ReturnObj } from "src/interfaces/return-object.interface";
 import { MailerService } from '@nestjs-modules/mailer';
+import ResponseRo from "src/common/ro/Response.ro";
+import { UpdateUsernameDto } from "./dto/update-username.dto";
 
 Injectable()
 export class UsersService {
@@ -192,5 +194,43 @@ export class UsersService {
       'confirmation-email.ejs',
       context,
     );
+  }
+
+  private async sendUsernameEmail(
+    userModel: UserModel,
+    oldName: string,
+  ): Promise<ResponseRo> {
+    const context = {
+      name: userModel.meta.name,
+      oldName,
+    };
+    return this.sendEmail(
+      userModel,
+      'The username has been changed',
+      'new-login-email.ejs',
+      context,
+    );
+  }
+
+
+  public async updateUsername(
+    id: string,
+    { newUsername }: UpdateUsernameDto,
+  ): Promise<ResponseRo> {
+    const userModel = await this.getUser({ id });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    const oldName = userModel.meta.name;
+    userModel.meta.name = newUsername;
+    this.sendUsernameEmail(userModel, oldName);
+
+    await this.metaRepository.update({ id: userModel.meta.id }, userModel.meta);
+
+    return {
+      ok: true,
+      message: 'The username have been successfully updated',
+      result: null,
+    };
   }
 }
