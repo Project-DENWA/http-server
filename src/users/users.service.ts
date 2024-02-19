@@ -13,13 +13,15 @@ import ResponseRo from "src/common/ro/Response.ro";
 import { UpdateUsernameDto } from "./dto/update-username.dto";
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
+import { UpdateProfileDto } from "./dto/update-profile.dto";
+import { PublicUserDto } from "./dto/public-user.dto";
 
 Injectable()
 export class UsersService {
   constructor(
     private readonly mailerService: MailerService,
     @InjectRepository(UserModel)
-    private usersRepository: Repository<UserModel>,
+    private userRepository: Repository<UserModel>,
     @InjectRepository(MetaModel)
     private metaRepository: Repository<MetaModel>,
     @InjectRepository(EmailModel)
@@ -51,7 +53,7 @@ export class UsersService {
     await this.metaRepository.save(userModel.meta);
     await this.avatarRepository.save(userModel.avatar);
     await this.notificationRepository.save(userModel.notification);
-    await this.usersRepository.save(userModel);
+    await this.userRepository.save(userModel);
 
     return userModel;
   }
@@ -69,7 +71,7 @@ export class UsersService {
     tfaToken?: string;
     emailToken?: string;
   }): Promise<UserModel | null> {
-    const userModel = await this.usersRepository.findOne({
+    const userModel = await this.userRepository.findOne({
       relations: {
         meta: true,
         email: true,
@@ -99,7 +101,7 @@ export class UsersService {
   }
 
   public async getAll(): Promise<UserModel[]> {
-    return await this.usersRepository.find({
+    return await this.userRepository.find({
       relations: {
         meta: true,
         email: true,
@@ -235,7 +237,7 @@ export class UsersService {
     return {
       ok: true,
       message: 'The username have been successfully updated',
-      result: null,
+      result: new PublicUserDto(userModel)
     };
   }
 
@@ -246,7 +248,7 @@ export class UsersService {
     }
 
     if (userModel.tfaSecret) {
-      await this.usersRepository.update(
+      await this.userRepository.update(
         { id: userModel.id },
         { tfaSecret: null },
       );
@@ -279,7 +281,7 @@ export class UsersService {
     const secret = speakeasy.generateSecret({
       name: `ParaPresent:${userModel.meta.name}`,
     });
-    await this.usersRepository.update(
+    await this.userRepository.update(
       { id: userModel.id },
       { tfaSecret: secret.base32 },
     );
@@ -319,4 +321,24 @@ export class UsersService {
   }
 
 
+  public async updateProfile(
+    id: string,
+    dto: UpdateProfileDto,
+  ): Promise<ResponseRo> {
+    const userModel = await this.getUser({ id });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (dto.newFullname) userModel.fullname = dto.newFullname;
+    if (dto.newBio) userModel.bio = dto.newBio;
+
+    await this.userRepository.update({ id: userModel.id }, { fullname: userModel.fullname, bio: userModel.bio });
+
+    return {
+      ok: true,
+      message: 'The profile have been successfully updated',
+      result: new PublicUserDto(userModel)
+    };
+  }
 }

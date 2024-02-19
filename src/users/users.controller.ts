@@ -13,6 +13,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import { multerAvatarConfig } from 'src/config/multer-avatar.config';
 import { multerCoverConfig } from 'src/config/multer-cover.config';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -103,7 +104,7 @@ export class UsersController {
       @ApiOperation({ summary: 'Username update' })
       @ApiBearerAuth('access-token')
       @Patch('update-username')
-      @ApiResponse({ status: 200, description: 'Successful mail update' })
+      @ApiResponse({ status: 200, description: 'Successful username update' })
       @ApiResponse({
         description: 'Message that user not found',
         status: 404,
@@ -471,5 +472,31 @@ export class UsersController {
         @Res() res: any,
       ): Promise<any> {
         res.sendFile(fileId, { root: 'uploads/covers' });
+      }
+
+      @ApiOperation({ summary: 'Profile update' })
+      @ApiBearerAuth('access-token')
+      @Patch('update-profile')
+      @ApiResponse({ status: 200, description: 'Successful profile update' })
+      @ApiResponse({
+        description: 'Message that user not found',
+        status: 404,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                message: { type: 'string', example: 'User not found' },
+              },
+            },
+          },
+        },
+      })
+      @UseGuards(JwtAuthGuard)
+      updateProfile(
+        @Req() req: AuthenticatedRequest,
+        @Body() dto: UpdateProfileDto,
+      ): Promise<ResponseRo> {
+        return this.userService.updateProfile(req.user.id, dto);
       }
 }

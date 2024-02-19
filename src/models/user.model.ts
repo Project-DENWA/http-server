@@ -29,6 +29,10 @@ export class UserModel extends BaseEntity {
   @Column({ type: 'varchar' })
   public fullname: string;
 
+  @ApiProperty({ example: 'Nazi', description: 'Bio description' })
+  @Column({ type: 'varchar', nullable: true  })
+  public bio: string;
+
   @ApiProperty({
     example: '$2a$05$LBNalJS.eyXbKgWiZ2uHyl/F16m2L3X',
     description: 'User hashed password',
