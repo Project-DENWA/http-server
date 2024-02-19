@@ -4,7 +4,6 @@ import { AvatarModel } from "src/models/avatar.model";
 import { EmailModel } from "src/models/email.model";
 import { MetaModel } from "src/models/meta.model";
 import { NotificationModel } from "src/models/notification.model";
-import { TfaModel } from "src/models/tfa.model";
 import { UserModel } from "src/models/user.model";
 import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -12,6 +11,8 @@ import { ReturnObj } from "src/interfaces/return-object.interface";
 import { MailerService } from '@nestjs-modules/mailer';
 import ResponseRo from "src/common/ro/Response.ro";
 import { UpdateUsernameDto } from "./dto/update-username.dto";
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
 
 Injectable()
 export class UsersService {
@@ -21,8 +22,6 @@ export class UsersService {
     private usersRepository: Repository<UserModel>,
     @InjectRepository(MetaModel)
     private metaRepository: Repository<MetaModel>,
-    @InjectRepository(TfaModel)
-    private tfaRepository: Repository<TfaModel>,
     @InjectRepository(EmailModel)
     private emailRepository: Repository<EmailModel>,
     @InjectRepository(AvatarModel)
@@ -44,14 +43,12 @@ export class UsersService {
     userModel.fullname = dto.fullname;
     userModel.password = dto.password;
     userModel.email = emailModel;
-    userModel.tfa = new TfaModel();
     userModel.meta = metaModel;
     userModel.avatar = new AvatarModel();
     userModel.notification = new NotificationModel();
 
     await this.emailRepository.save(userModel.email);
     await this.metaRepository.save(userModel.meta);
-    await this.tfaRepository.save(userModel.tfa);
     await this.avatarRepository.save(userModel.avatar);
     await this.notificationRepository.save(userModel.notification);
     await this.usersRepository.save(userModel);
@@ -75,7 +72,6 @@ export class UsersService {
     const userModel = await this.usersRepository.findOne({
       relations: {
         meta: true,
-        tfa: true,
         email: true,
         avatar: true,
         notification: true,
@@ -86,11 +82,9 @@ export class UsersService {
         { meta: { name } },
         { email: { email } },
         { email: { token: emailToken } },
-        { tfa: { token: tfaToken } },
       ],
       select: {
         meta: { id: true, name: true, description: true },
-        tfa: { id: true, secret: true, token: true },
         email: { id: true, email: true, verified: true, token: true },
         avatar: { id: true, icon: true, cover: true },
         notification: {
@@ -109,7 +103,6 @@ export class UsersService {
       relations: {
         meta: true,
         email: true,
-        tfa: true,
         avatar: true,
         notification: true,
         sessions: true,
@@ -117,7 +110,6 @@ export class UsersService {
       select: {
         meta: { id: true, name: true, description: true },
         email: { id: true, email: true, verified: true, token: true },
-        tfa: { id: true, secret: true, token: true },
         avatar: { id: true, icon: true, cover: true },
         notification: {
           news: true,
@@ -212,6 +204,19 @@ export class UsersService {
     );
   }
 
+  public async sendTfaEmail(userModel: UserModel): Promise<ResponseRo> {
+    const context = {
+      name: userModel.meta.name,
+    };
+
+    return this.sendEmail(
+      userModel,
+      'TFA has been switched',
+      'tfa-switched.ejs',
+      context,
+    );
+  }
+
 
   public async updateUsername(
     id: string,
@@ -233,4 +238,85 @@ export class UsersService {
       result: null,
     };
   }
+
+  async switchTfa(id: string): Promise<ResponseRo> {
+    const userModel = await this.getUser({ id });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (userModel.tfaSecret) {
+      await this.usersRepository.update(
+        { id: userModel.id },
+        { tfaSecret: null },
+      );
+      return {
+        ok: true,
+        message: 'Tfa was successfully switched off',
+        result: null,
+      };
+    } else {
+      const tfaSecret = await this.generate2FASecret(userModel);
+      if (!tfaSecret) {
+        throw new HttpException(
+          '2FA secret not found',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      this.sendTfaEmail(userModel);
+
+      return {
+        ok: true,
+        message: 'Tfa was successfully switched on',
+        result: tfaSecret,
+      };
+    }
+  }
+
+  private async generate2FASecret(
+    userModel: UserModel,
+  ): Promise<{ secret: string; qrCodeUrl: string } | undefined> {
+    const secret = speakeasy.generateSecret({
+      name: `ParaPresent:${userModel.meta.name}`,
+    });
+    await this.usersRepository.update(
+      { id: userModel.id },
+      { tfaSecret: secret.base32 },
+    );
+
+    if (secret.otpauth_url) {
+      const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+      return { secret: secret.base32, qrCodeUrl };
+    } else {
+      console.error('otpauth_url is undefined');
+    }
+  }
+
+  public async setAvatar(id: string, avatarUrl: string): Promise<string> {
+    const userModel = await this.getUser({ id });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    userModel.avatar.icon = avatarUrl;
+    await this.avatarRepository.update(
+      { id: userModel.avatar.id },
+      userModel.avatar,
+    );
+    return avatarUrl;
+  }
+
+  async setCover(id: string, coverUrl: string): Promise<string> {
+    const userModel = await this.getUser({ id });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    userModel.avatar.cover = coverUrl;
+    await this.avatarRepository.update(
+      { id: userModel.avatar.id },
+      userModel.avatar,
+    );
+    return coverUrl;
+  }
+
+
 }

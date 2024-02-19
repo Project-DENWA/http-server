@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Delete, Req, UseGuards } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SessionsService } from './sessions.service';
 import { SessionModel } from 'src/models/sessions.model';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
@@ -51,6 +51,7 @@ export class SessionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Close session by jwt' })
   @ApiHeader({
     name: 'Authorization',

@@ -6,7 +6,6 @@ import { MetaModel } from 'src/models/meta.model';
 import { NotificationModel } from 'src/models/notification.model';
 import { UserModel } from 'src/models/user.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TfaModel } from 'src/models/tfa.model';
 import { SessionModel } from 'src/models/sessions.model';
 
 @Module({
@@ -26,7 +25,6 @@ import { SessionModel } from 'src/models/sessions.model';
             AvatarModel,
             EmailModel,
             MetaModel,
-            TfaModel,
             NotificationModel,
             UserModel,
             SessionModel,

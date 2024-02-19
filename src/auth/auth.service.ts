@@ -29,12 +29,12 @@ export class AuthService {
         const userModel = await this.validateUser(dto);
         const tokens: object = await this.generateTokens(userModel, req, ip);
     
-        if (userModel.tfa.secret) {
+        if (userModel.tfaSecret) {
           if (!dto.tfaCode) {
             throw new HttpException('2FA code is required', HttpStatus.FORBIDDEN);
           }
           const isTfaCodeValid = speakeasy.totp.verify({
-            secret: userModel.tfa.secret,
+            secret: userModel.tfaSecret,
             encoding: 'base32',
             token: dto.tfaCode,
           });

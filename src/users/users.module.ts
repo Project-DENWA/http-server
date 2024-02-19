@@ -8,7 +8,6 @@ import { EmailModel } from 'src/models/email.model';
 import { MetaModel } from 'src/models/meta.model';
 import { AvatarModel } from 'src/models/avatar.model';
 import { NotificationModel } from 'src/models/notification.model';
-import { TfaModel } from 'src/models/tfa.model';
 
 @Module({
   controllers: [UsersController],
@@ -19,7 +18,6 @@ import { TfaModel } from 'src/models/tfa.model';
       UserModel,
       MetaModel,
       EmailModel,
-      TfaModel,
       AvatarModel,
       NotificationModel,
     ]),
