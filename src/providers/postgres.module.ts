@@ -7,6 +7,7 @@ import { NotificationModel } from 'src/models/notification.model';
 import { UserModel } from 'src/models/user.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SessionModel } from 'src/models/sessions.model';
+import { TokenModel } from 'src/models/tokens.model';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SessionModel } from 'src/models/sessions.model';
             NotificationModel,
             UserModel,
             SessionModel,
+            TokenModel,
           ],
           autoLoadEntities: true,
           synchronize: true,

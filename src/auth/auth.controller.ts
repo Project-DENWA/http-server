@@ -1,12 +1,14 @@
-import { Body, Controller, Get, Ip, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Ip, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
-import { SessionsService } from 'src/sessions/sessions.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SessionGuard } from 'src/sessions/guards/session.guard';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { TokensService } from 'src/tokens/tokens.service';
+import ResponseRo from 'src/common/ro/Response.ro';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -14,7 +16,7 @@ export class AuthController {
   constructor(
       private userService: UsersService,
       private authService: AuthService,
-      private sessionService: SessionsService,
+      private tokensService: TokensService,
     ) {}
 
   @ApiOperation({ summary: 'Create user' })
@@ -383,7 +385,46 @@ export class AuthController {
     },
   })
   @Get('activate/:token')
-  async activateAccount(@Param('token') token: string) {
+  async activateAccount(@Param('token') token: string): Promise <ResponseRo> {
     return await this.userService.activateAccount(token);
+  }
+
+  @Get('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise <ResponseRo> {
+    const userModel = await this.userService.getUser({
+      name: dto.username,
+      email: dto.email,
+    });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const token = await this.tokensService.createToken(userModel.id);
+    await this.userService.sendForgotPasswordEmail(userModel, token);
+
+    return await this.userService.sendForgotPasswordEmail(userModel, token);
+  }
+
+  @Get('restore/:token')
+  async restorePassword(@Param('token') token: string): Promise <ResponseRo> {
+    const tokenModel = await this.tokensService.getToken({ token });
+    if (!tokenModel) {
+      throw new HttpException('Token not found', HttpStatus.NOT_FOUND);
+    }
+    const userModel = await this.userService.getUser({
+      id: tokenModel.userId,
+    });
+    if (!userModel) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    userModel.password = await this.authService.handleForgotPassword(userModel);
+    await this.userService.sendRestorePasswordEmail(userModel);
+    await this.tokensService.removeToken(userModel.id);
+    return {
+      ok: true,
+      message: 'The letter have been successfully sended',
+      result: null,
+    };
   }
 }
