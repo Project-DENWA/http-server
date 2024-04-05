@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { LoginUserDto } from "./dto/login-user.dto";
-import { ReturnObj } from "src/interfaces/return-object.interface";
 import { UserModel } from "src/models/user.model";
 import { UsersService } from "src/users/users.service";
 import { JwtService } from "@nestjs/jwt";
@@ -10,7 +9,8 @@ import * as bcrypt from 'bcryptjs';
 import * as speakeasy from 'speakeasy';
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { v4 } from "uuid";
-import { PublicUserRo } from "src/users/ro/public-user.ro";
+import ResponseRo from "src/common/ro/Response.ro";
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,7 @@ export class AuthService {
         dto: LoginUserDto,
         req: Request,
         ip: string,
-      ): Promise<ReturnObj> {
+      ): Promise<ResponseRo> {
         const userModel = await this.validateUser(dto);
         const tokens: object = await this.generateTokens(userModel, req, ip);
     
@@ -123,7 +123,7 @@ export class AuthService {
         dto: CreateUserDto,
         req: Request,
         ip: string,
-      ): Promise<ReturnObj> {
+      ): Promise<ResponseRo> {
         const userModel = await this.userService.getUser({
           email: dto.email,
           name: dto.username,
@@ -159,7 +159,7 @@ export class AuthService {
         };
       }
 
-      async refreshAccessToken(refreshToken: string): Promise<ReturnObj> {
+      async refreshAccessToken(refreshToken: string): Promise<ResponseRo> {
         const decoded = this.jwtService.verify(refreshToken);
         const session =
           await this.sessionService.findSessionByRefreshToken(refreshToken);
@@ -176,5 +176,28 @@ export class AuthService {
           message: 'Token successfully refreshed',
           result: accessToken
         };
+      }
+
+      async generatePassword(length: number) {
+        const password: string = crypto
+          .randomBytes(Math.ceil(length / 2))
+          .toString('hex')
+          .slice(0, length);
+        const hashPassword: string = await bcrypt.hash(password, 5);
+        return {
+          password,
+          hashPassword,
+        };
+      }
+    
+      async handleForgotPassword(userModel: UserModel): Promise<string> {
+        const { password, hashPassword } = await this.generatePassword(12);
+        try {
+          userModel.password = hashPassword;
+          await userModel.save();
+        } catch (error) {
+          throw new UnauthorizedException('Server error ', error);
+        }
+        return password;
       }
 }

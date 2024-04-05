@@ -7,7 +7,6 @@ import { NotificationModel } from "src/models/notification.model";
 import { UserModel } from "src/models/user.model";
 import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { ReturnObj } from "src/interfaces/return-object.interface";
 import { MailerService } from '@nestjs-modules/mailer';
 import ResponseRo from "src/common/ro/Response.ro";
 import { UpdateUsernameDto } from "./dto/update-username.dto";
@@ -121,7 +120,7 @@ export class UsersService {
     });
   }
   
-  public async activateAccount(emailToken: string): Promise<ReturnObj> {
+  public async activateAccount(emailToken: string): Promise<ResponseRo> {
     const userModel = await this.getUser({ emailToken });
     if (!userModel) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -143,7 +142,7 @@ export class UsersService {
     subject: string,
     template: string,
     context: object,
-  ): Promise<ReturnObj> {
+  ): Promise<ResponseRo> {
     try {
       await this.mailerService.sendMail({
         to: userModel.email.email,
@@ -175,7 +174,7 @@ export class UsersService {
   async sendConfirmationEmail(
     userModel: UserModel,
     activationToken: string,
-  ): Promise<ReturnObj> {
+  ): Promise<ResponseRo> {
     const baseUrl = process.env.BASE_URL as string;
     const activationUrl = `${baseUrl}/auth/activate/${activationToken}`;
     const context = {
@@ -202,6 +201,37 @@ export class UsersService {
       userModel,
       'The username has been changed',
       'new-login-email.ejs',
+      context,
+    );
+  }
+
+  async sendForgotPasswordEmail(
+    userModel: UserModel,
+    activationToken: string,
+  ): Promise<ResponseRo> {
+    const baseUrl = process.env.BASE_URL as string;
+    const activationUrl = `${baseUrl}/auth/restore/${activationToken}`;
+    const context = {
+      name: userModel.meta.name,
+      activationUrl,
+    };
+    return this.sendEmail(
+      userModel,
+      'Account restore',
+      'forgot-password-email.ejs',
+      context,
+    );
+  }
+
+  async sendRestorePasswordEmail(userModel: UserModel): Promise<ResponseRo> {
+    const context = {
+      name: userModel.meta.name,
+      newPassword: userModel.password,
+    };
+    return this.sendEmail(
+      userModel,
+      'New password',
+      'new-password-email.ejs',
       context,
     );
   }

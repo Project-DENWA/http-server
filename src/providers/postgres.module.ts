@@ -7,6 +7,7 @@ import { NotificationModel } from 'src/models/notification.model';
 import { UserModel } from 'src/models/user.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SessionModel } from 'src/models/sessions.model';
+import { TokenModel } from 'src/models/tokens.model';
 import { WorkModel } from 'src/models/works.model';
 
 @Module({
@@ -29,6 +30,7 @@ import { WorkModel } from 'src/models/works.model';
             NotificationModel,
             UserModel,
             SessionModel,
+            TokenModel,
             WorkModel,
           ],
           autoLoadEntities: true,

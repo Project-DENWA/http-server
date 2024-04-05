@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { EnvFilePathModule } from "./providers/envfilepath.module";
 import { PostgresModule } from "./providers/postgres.module";
 import { UsersModule } from "./users/users.module";
@@ -6,6 +6,8 @@ import { AuthModule } from "./auth/auth.module";
 import { SessionsModule } from "./sessions/sessions.module";
 import { DIYMailerModule } from "./providers/mailer.module";
 import { WorksModule } from './works/works.module';
+import { TokensModule } from './tokens/tokens.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   controllers: [],
@@ -17,6 +19,8 @@ import { WorksModule } from './works/works.module';
     AuthModule,
     SessionsModule,
     DIYMailerModule,
+    TokensModule,
+    ScheduleModule.forRoot(),
     WorksModule,
     // ScheduleModule.forRoot(),
   ],
