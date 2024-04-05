@@ -15,6 +15,7 @@ import { EmailModel } from './email.model';
 import { AvatarModel } from './avatar.model';
 import { NotificationModel } from './notification.model';
 import { SessionModel } from './sessions.model';
+import { WorkModel } from './works.model';
 
 @Entity({ name: 'users' })
 export class UserModel extends BaseEntity {
@@ -81,6 +82,10 @@ export class UserModel extends BaseEntity {
   @OneToOne(() => NotificationModel)
   @JoinColumn()
   public notification: NotificationModel;
+
+  @OneToMany(() => WorkModel, (work) => work.user)
+  @JoinColumn()
+  public works: WorkModel[];
 
   @OneToMany(() => SessionModel, (session) => session.user)
   @JoinColumn()

@@ -14,7 +14,7 @@ import { UpdateUsernameDto } from "./dto/update-username.dto";
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { UpdateProfileDto } from "./dto/update-profile.dto";
-import { PublicUserDto } from "./dto/public-user.dto";
+import { PublicUserRo } from "./ro/public-user.ro";
 
 Injectable()
 export class UsersService {
@@ -237,7 +237,7 @@ export class UsersService {
     return {
       ok: true,
       message: 'The username have been successfully updated',
-      result: new PublicUserDto(userModel)
+      result: new PublicUserRo(userModel)
     };
   }
 
@@ -338,7 +338,7 @@ export class UsersService {
     return {
       ok: true,
       message: 'The profile have been successfully updated',
-      result: new PublicUserDto(userModel)
+      result: new PublicUserRo(userModel)
     };
   }
 }

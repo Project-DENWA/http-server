@@ -5,6 +5,7 @@ import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { SessionsModule } from "./sessions/sessions.module";
 import { DIYMailerModule } from "./providers/mailer.module";
+import { WorksModule } from './works/works.module';
 
 @Module({
   controllers: [],
@@ -16,6 +17,7 @@ import { DIYMailerModule } from "./providers/mailer.module";
     AuthModule,
     SessionsModule,
     DIYMailerModule,
+    WorksModule,
     // ScheduleModule.forRoot(),
   ],
 })

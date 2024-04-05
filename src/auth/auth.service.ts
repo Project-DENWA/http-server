@@ -8,9 +8,9 @@ import { SessionsService } from "src/sessions/sessions.service";
 import { CreateSessionDto } from "src/sessions/dto/create-session.dto";
 import * as bcrypt from 'bcryptjs';
 import * as speakeasy from 'speakeasy';
-import { PublicUserDto } from "src/users/dto/public-user.dto";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { v4 } from "uuid";
+import { PublicUserRo } from "src/users/ro/public-user.ro";
 
 @Injectable()
 export class AuthService {
@@ -44,7 +44,7 @@ export class AuthService {
           }
         }
     
-        const publicUser = new PublicUserDto(userModel);
+        const publicUser = new PublicUserRo(userModel);
         return {
           ok: true,
           message: 'User successfully authorized',
@@ -147,7 +147,7 @@ export class AuthService {
     
         await this.userService.sendConfirmationEmail(user, activationToken);
         const tokens = await this.generateTokens(user, req, ip);
-        const publicUser = new PublicUserDto(user);
+        const publicUser = new PublicUserRo(user);
     
         return {
           ok: true,
