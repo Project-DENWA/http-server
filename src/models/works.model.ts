@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
 import { MetaModel } from "./meta.model";
 import { UserModel } from "./user.model";
+import { WorkCategoryModel } from "./work-categories.model";
 
 @Entity({ name: 'works' })
 export class WorkModel extends BaseEntity {
@@ -40,4 +41,7 @@ export class WorkModel extends BaseEntity {
         default: () => 'CURRENT_TIMESTAMP(6)',
     })
     public created_at: Date;
+
+    @OneToMany(() => WorkCategoryModel, (workCategory) => workCategory.work)
+    workCategories: WorkCategoryModel[];
 }

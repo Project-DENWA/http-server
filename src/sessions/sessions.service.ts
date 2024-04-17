@@ -1,12 +1,6 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SessionModel } from '../models/sessions.model';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,7 +9,6 @@ export class SessionsService {
   constructor(
     @InjectRepository(SessionModel)
     private sessionRepository: Repository<SessionModel>,
-    private jwtService: JwtService,
   ) {}
 
   async createSession(dto: CreateSessionDto): Promise<SessionModel> {
@@ -24,35 +17,51 @@ export class SessionsService {
     session.ip = dto.ip;
     session.userAgent = dto.userAgent;
     session.lastActivity = new Date();
+    session.user = dto.user;
     return await this.sessionRepository.save(session);
   }
 
-  async getAllActiveSessions(): Promise<SessionModel[]> {
-    return await this.sessionRepository.find();
+  async getAllSessions({
+    userId,
+  }: {
+    userId?: string;
+  }): Promise<SessionModel[]> {
+    const sessionsModel = await this.sessionRepository.find({
+      where: [{ user: { id: userId } }],
+    });
+
+    return sessionsModel;
   }
 
-  async closeSessionById(id: string): Promise<void> {
-    const session = await this.sessionRepository.findOneBy({ id });
-    if (!session) {
-      throw new HttpException('Session not found', HttpStatus.NOT_FOUND);
-    }
-    await this.sessionRepository.delete(session.id);
-  }
+  async getSession({
+    id,
+    refreshToken,
+    ip,
+    userAgent,
+  }: {
+    id?: string;
+    refreshToken?: string;
+    ip?: string;
+    userAgent?: string;
+  }): Promise<SessionModel | null> {
+    const conditions: Record<string, any> = {};
 
-  async findSessionByRefreshToken(
-    refreshToken: string,
-  ): Promise<SessionModel | null> {
-    if (!refreshToken) {
-      throw new UnauthorizedException('No Authorization header');
-    }
-    if (refreshToken.startsWith('Bearer ')) {
-      refreshToken = refreshToken.split(' ')[1];
-    }
+    if (id) conditions.id = id;
+    if (refreshToken) conditions.refreshToken = refreshToken;
+    if (ip) conditions.ip = ip;
+    if (userAgent) conditions.userAgent = userAgent;
 
-    if (!refreshToken) {
-      throw new UnauthorizedException('No JWT provided');
-    }
-    return await this.sessionRepository.findOne({ where: { refreshToken } });
+    const sessionModel = await this.sessionRepository.findOne({
+      relations: {
+        user: true,
+      },
+      where: conditions,
+      select: {
+        user: { id: true },
+      },
+    });
+
+    return sessionModel;
   }
 
   async updateLastActivity(id: string): Promise<void> {
@@ -82,70 +91,13 @@ export class SessionsService {
     }
   }
 
-  async closeSessionByJWT(
-    jwt: string,
-  ): Promise<{ ok: boolean; message: string }> {
-    const session = await this.findSessionByRefreshToken(jwt);
-    if (!session) {
-      throw new HttpException('Session not found', HttpStatus.NOT_FOUND);
-    }
-    await this.sessionRepository.delete({ id: session.id });
-    return {
-      ok: true,
-      message: 'The session has been deleted',
-    };
-  }
-
-  async extractUserIdFromToken(token: string): Promise<string> {
-    try {
-      if (!token.startsWith('Bearer ')) {
-        throw new Error('Invalid token format');
-      }
-
-      const jwt = token.split(' ')[1];
-
-      const secretKey = process.env.PRIVATE_KEY as string;
-
-      const decoded = this.jwtService.verify(jwt, { secret: secretKey });
-
-      return decoded.id;
-    } catch (error) {
-      console.log(error);
-      throw new Error('Error verifying token');
-    }
-  }
-
-  async findSessionsByUserId(userId: string): Promise<SessionModel[]> {
-    if (!userId) {
-      throw new HttpException('User ID not found', HttpStatus.NOT_FOUND);
-    }
-
-    return [];
-    /*return await this.sessionRepository.findAll({
-      where: { userId },
-    });*/
-  }
-
-  async logoutFromAllDevices(userId: string) {
-    userId;
-    /*await this.sessionRepository.destroy({ where: { userId: userId } });
-    return {
-      message: 'Sessions removed',
-    };*/
-  }
-
-  async logoutBySessionId(sessionId: string, userId: string) {
-    sessionId;
-    userId;
-    /*const session = await this.sessionRepository.findOne({
-      where: { id: sessionId, userId: userId },
+  async deleteSession(id: string, userId: string): Promise<void> {
+    const sessionModel = await this.sessionRepository.findOne({
+      where: { user: { id: userId }, id },
     });
-    if (!session) {
+    if (!sessionModel) {
       throw new HttpException('Session not found', HttpStatus.NOT_FOUND);
     }
-    await session.destroy();
-    return {
-      message: 'Session removed',
-    };*/
+    await this.sessionRepository.delete({ id, user: { id: userId } });
   }
 }

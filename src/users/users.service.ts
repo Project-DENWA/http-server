@@ -1,26 +1,37 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { AvatarModel } from "src/models/avatar.model";
-import { EmailModel } from "src/models/email.model";
-import { MetaModel } from "src/models/meta.model";
-import { NotificationModel } from "src/models/notification.model";
-import { UserModel } from "src/models/user.model";
-import { Repository } from "typeorm";
-import { CreateUserDto } from "./dto/create-user.dto";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserModel } from '../models/user.model';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { UpdateEmailDto } from './dto/update-email.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcryptjs';
+import { v4 } from 'uuid';
+import { NotificationSettingsDto } from './dto/update-notification.dto';
+import { EmailModel } from 'src/models/email.model';
+import { AvatarModel } from 'src/models/avatar.model';
+import { NotificationModel } from 'src/models/notification.model';
+import { MetaModel } from 'src/models/meta.model';
 import { MailerService } from '@nestjs-modules/mailer';
-import ResponseRo from "src/common/ro/Response.ro";
-import { UpdateUsernameDto } from "./dto/update-username.dto";
-import * as speakeasy from 'speakeasy';
-import * as QRCode from 'qrcode';
-import { UpdateProfileDto } from "./dto/update-profile.dto";
-import { PublicUserRo } from "./ro/public-user.ro";
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateUsernameDto } from './dto/update-username.dto';
+import { ConfigService } from '@nestjs/config';
+import ResponseRo from 'src/common/ro/Response.ro';
+import { UpdateDescriptionDto } from './dto/update-description.dto';
+import { PublicUser } from './ro/public-user.ro';
 
-Injectable()
+@Injectable()
 export class UsersService {
   constructor(
     private readonly mailerService: MailerService,
     @InjectRepository(UserModel)
-    private userRepository: Repository<UserModel>,
+    private usersRepository: Repository<UserModel>,
     @InjectRepository(MetaModel)
     private metaRepository: Repository<MetaModel>,
     @InjectRepository(EmailModel)
@@ -29,10 +40,10 @@ export class UsersService {
     private avatarRepository: Repository<AvatarModel>,
     @InjectRepository(NotificationModel)
     private notificationRepository: Repository<NotificationModel>,
+    private readonly configService: ConfigService,
   ) {}
 
   public async create(dto: CreateUserDto, activationToken: string) {
-
     const emailModel = new EmailModel();
     emailModel.email = dto.email;
     emailModel.token = activationToken;
@@ -52,7 +63,7 @@ export class UsersService {
     await this.metaRepository.save(userModel.meta);
     await this.avatarRepository.save(userModel.avatar);
     await this.notificationRepository.save(userModel.notification);
-    await this.userRepository.save(userModel);
+    await this.usersRepository.save(userModel);
 
     return userModel;
   }
@@ -61,16 +72,16 @@ export class UsersService {
     id,
     name,
     email,
-    tfaToken,
     emailToken,
+    refCode,
   }: {
     id?: string;
     name?: string;
     email?: string;
-    tfaToken?: string;
     emailToken?: string;
+    refCode?: string;
   }): Promise<UserModel | null> {
-    const userModel = await this.userRepository.findOne({
+    const userModel = await this.usersRepository.findOne({
       relations: {
         meta: true,
         email: true,
@@ -91,7 +102,6 @@ export class UsersService {
         notification: {
           id: true,
           news: true,
-          messages: true,
         },
       },
     });
@@ -99,42 +109,41 @@ export class UsersService {
     return userModel;
   }
 
-  public async getAll(): Promise<UserModel[]> {
-    return await this.userRepository.find({
-      relations: {
-        meta: true,
-        email: true,
-        avatar: true,
-        notification: true,
-        sessions: true,
-      },
-      select: {
-        meta: { id: true, name: true, description: true },
-        email: { id: true, email: true, verified: true, token: true },
-        avatar: { id: true, icon: true, cover: true },
-        notification: {
-          news: true,
-          messages: true,
-        },
-      },
-    });
+  public async getUserOrThrow(args: {
+    id?: string;
+    name?: string;
+    email?: string;
+    emailToken?: string;
+    refCode?: string;
+  }): Promise<UserModel> {
+    const userModel = await this.getUser(args);
+    if (!userModel) throw new NotFoundException('User not found.');
+    return userModel;
   }
-  
-  public async activateAccount(emailToken: string): Promise<ResponseRo> {
-    const userModel = await this.getUser({ emailToken });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
+
+  public async updateEmail(
+    id: string,
+    { newEmail }: UpdateEmailDto,
+  ): Promise<void> {
+    const existingUserModel = await this.getUser({ email: newEmail });
+    if (existingUserModel)
+      throw new HttpException(
+        'User with this email already exists',
+        HttpStatus.CONFLICT,
+      );
+
+    const userModel = await this.getUserOrThrow({ id });
+
+    userModel.email.email = newEmail;
+    userModel.email.verified = false;
+    userModel.email.token = v4();
 
     await this.emailRepository.update(
       { id: userModel.email.id },
-      { verified: true, token: null },
+      userModel.email,
     );
-    return {
-      ok: true,
-      message: 'The user have been successfully activated',
-      result: null,
-    };
+
+    await this.sendConfirmationEmail(userModel, userModel.email.token);
   }
 
   private async sendEmail(
@@ -189,22 +198,6 @@ export class UsersService {
     );
   }
 
-  private async sendUsernameEmail(
-    userModel: UserModel,
-    oldName: string,
-  ): Promise<ResponseRo> {
-    const context = {
-      name: userModel.meta.name,
-      oldName,
-    };
-    return this.sendEmail(
-      userModel,
-      'The username has been changed',
-      'new-login-email.ejs',
-      context,
-    );
-  }
-
   async sendForgotPasswordEmail(
     userModel: UserModel,
     activationToken: string,
@@ -236,139 +229,165 @@ export class UsersService {
     );
   }
 
-  public async sendTfaEmail(userModel: UserModel): Promise<ResponseRo> {
+  private async sendPasswordEmail(userModel: UserModel): Promise<ResponseRo> {
     const context = {
       name: userModel.meta.name,
     };
-
     return this.sendEmail(
       userModel,
-      'TFA has been switched',
-      'tfa-switched.ejs',
+      'The password has been changed',
+      'password-changed-email.ejs',
       context,
     );
   }
 
+  private async sendUsernameEmail(
+    userModel: UserModel,
+    oldName: string,
+  ): Promise<ResponseRo> {
+    const context = {
+      name: userModel.meta.name,
+      oldName,
+    };
+    return this.sendEmail(
+      userModel,
+      'The username has been changed',
+      'new-login-email.ejs',
+      context,
+    );
+  }
+
+  public async activateAccount(emailToken: string): Promise<void> {
+    const userModel = await this.getUserOrThrow({ emailToken });
+
+    await this.emailRepository.update(
+      { id: userModel.email.id },
+      { verified: true, token: null },
+    );
+  }
+
+  public async updatePassword(
+    id: string,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
+    if (
+      !(await bcrypt.compare(
+        updatePasswordDto.currentPassword,
+        userModel.password,
+      ))
+    )
+      throw new UnauthorizedException({
+        message: 'Passwords do not match',
+      });
+
+    userModel.password = await bcrypt.hash(updatePasswordDto.newPassword, 5);
+    await this.usersRepository.save(userModel);
+    await this.sendPasswordEmail(userModel);
+  }
+
+  public async getAll(): Promise<PublicUser[]> {
+    const users = await this.usersRepository.find({
+      relations: {
+        meta: true,
+        email: true,
+        avatar: true,
+        notification: true,
+        sessions: true,
+      },
+      select: {
+        meta: { id: true, name: true, description: true },
+        email: { id: true, email: true, verified: true, token: true },
+        avatar: { id: true, icon: true, cover: true },
+        notification: {
+          id: true,
+          news: true,
+        },
+      },
+    });
+
+    return users.map((user) => new PublicUser(user));
+  }
+
+  public async updateNotificationSettings(
+    id: string,
+    dto: NotificationSettingsDto,
+  ): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
+    if (typeof dto.news !== 'undefined') {
+      userModel.notification.news = dto.news;
+    }
+    await this.notificationRepository.update(
+      { id: userModel.notification.id },
+      userModel.notification,
+    );
+  }
 
   public async updateUsername(
     id: string,
     { newUsername }: UpdateUsernameDto,
-  ): Promise<ResponseRo> {
-    const userModel = await this.getUser({ id });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
+  ): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
     const oldName = userModel.meta.name;
     userModel.meta.name = newUsername;
-    this.sendUsernameEmail(userModel, oldName);
+    await this.sendUsernameEmail(userModel, oldName);
 
     await this.metaRepository.update({ id: userModel.meta.id }, userModel.meta);
-
-    return {
-      ok: true,
-      message: 'The username have been successfully updated',
-      result: new PublicUserRo(userModel)
-    };
   }
 
-  async switchTfa(id: string): Promise<ResponseRo> {
-    const userModel = await this.getUser({ id });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    if (userModel.tfaSecret) {
-      await this.userRepository.update(
-        { id: userModel.id },
-        { tfaSecret: null },
-      );
-      return {
-        ok: true,
-        message: 'Tfa was successfully switched off',
-        result: null,
-      };
-    } else {
-      const tfaSecret = await this.generate2FASecret(userModel);
-      if (!tfaSecret) {
-        throw new HttpException(
-          '2FA secret not found',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      this.sendTfaEmail(userModel);
-
-      return {
-        ok: true,
-        message: 'Tfa was successfully switched on',
-        result: tfaSecret,
-      };
-    }
-  }
-
-  private async generate2FASecret(
-    userModel: UserModel,
-  ): Promise<{ secret: string; qrCodeUrl: string } | undefined> {
-    const secret = speakeasy.generateSecret({
-      name: `ParaPresent:${userModel.meta.name}`,
-    });
-    await this.userRepository.update(
-      { id: userModel.id },
-      { tfaSecret: secret.base32 },
-    );
-
-    if (secret.otpauth_url) {
-      const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
-      return { secret: secret.base32, qrCodeUrl };
-    } else {
-      console.error('otpauth_url is undefined');
-    }
-  }
-
-  public async setAvatar(id: string, avatarUrl: string): Promise<string> {
-    const userModel = await this.getUser({ id });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-    userModel.avatar.icon = avatarUrl;
-    await this.avatarRepository.update(
-      { id: userModel.avatar.id },
-      userModel.avatar,
-    );
-    return avatarUrl;
-  }
-
-  async setCover(id: string, coverUrl: string): Promise<string> {
-    const userModel = await this.getUser({ id });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-    userModel.avatar.cover = coverUrl;
-    await this.avatarRepository.update(
-      { id: userModel.avatar.id },
-      userModel.avatar,
-    );
-    return coverUrl;
-  }
-
-
-  public async updateProfile(
+  public async updateDescription(
     id: string,
-    dto: UpdateProfileDto,
-  ): Promise<ResponseRo> {
-    const userModel = await this.getUser({ id });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
+    { newDescription }: UpdateDescriptionDto,
+  ): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
 
-    if (dto.newFullname) userModel.fullname = dto.newFullname;
-    if (dto.newBio) userModel.bio = dto.newBio;
+    userModel.meta.description = newDescription;
 
-    await this.userRepository.update({ id: userModel.id }, { fullname: userModel.fullname, bio: userModel.bio });
+    await this.metaRepository.update({ id: userModel.meta.id }, userModel.meta);
+  }
 
-    return {
-      ok: true,
-      message: 'The profile have been successfully updated',
-      result: new PublicUserRo(userModel)
-    };
+  public async setAvatar(id: string, url: string): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
+    userModel.avatar.icon = url;
+    await this.avatarRepository.update(
+      { id: userModel.avatar.id },
+      userModel.avatar,
+    );
+  }
+
+  public async setCover(id: string, url: string): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
+    userModel.avatar.cover = url;
+    await this.avatarRepository.update(
+      { id: userModel.avatar.id },
+      userModel.avatar,
+    );
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
+    await this.usersRepository.delete({ id: userModel.id });
+    await this.emailRepository.delete({ id: userModel.email.id });
+    await this.metaRepository.delete({ id: userModel.meta.id });
+    await this.avatarRepository.delete({ id: userModel.avatar.id });
+    await this.notificationRepository.delete({ id: userModel.notification.id });
+  }
+
+  async incrementViewCount(id: string): Promise<void> {
+    await this.usersRepository.increment({ id }, 'views', 1);
+  }
+
+  async incrementLikeCount(id: string): Promise<void> {
+    await this.usersRepository.increment({ id }, 'likes', 1);
+  }
+
+  async decrementLikeCount(id: string): Promise<void> {
+    await this.usersRepository.decrement({ id }, 'likes', 1);
   }
 }

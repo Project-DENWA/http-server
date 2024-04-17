@@ -8,6 +8,11 @@ import { DIYMailerModule } from "./providers/mailer.module";
 import { WorksModule } from './works/works.module';
 import { TokensModule } from './tokens/tokens.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AdminSessionsModule } from "./governance/admin-sessions/admin-sessions.module";
+import { AdministrationModule } from "./governance/administration/administration.module";
+import { AdminsModule } from "./governance/admins/admins.module";
+import { ModerationModule } from "./governance/moderation/moderation.module";
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   controllers: [],
@@ -22,7 +27,12 @@ import { ScheduleModule } from '@nestjs/schedule';
     TokensModule,
     ScheduleModule.forRoot(),
     WorksModule,
-    // ScheduleModule.forRoot(),
+    ScheduleModule.forRoot(),
+    AdminSessionsModule,
+    AdministrationModule,
+    AdminsModule,
+    ModerationModule,
+    CategoriesModule,
   ],
 })
 export class AppModule {}

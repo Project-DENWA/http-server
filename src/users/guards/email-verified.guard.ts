@@ -19,10 +19,8 @@ export class EmailVerifiedGuard implements CanActivate {
   }
 
   private async validateRequest({ id }: UserModel) {
-    const userModel = await this.userService.getUser({ id });
-    if (!userModel) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
+    const userModel = await this.userService.getUserOrThrow({ id });
+
     if (!userModel.email.verified) {
       throw new HttpException('Email is not verified', HttpStatus.UNAUTHORIZED);
     }

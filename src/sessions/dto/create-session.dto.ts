@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { UserModel } from 'src/models/user.model';
 
 export class CreateSessionDto {
   @ApiProperty({
@@ -23,5 +24,5 @@ export class CreateSessionDto {
 
   @ApiProperty({ example: '32', description: 'User id' })
   @IsNotEmpty()
-  userId: string;
+  readonly user: UserModel;
 }

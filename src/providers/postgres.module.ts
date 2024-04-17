@@ -9,6 +9,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SessionModel } from 'src/models/sessions.model';
 import { TokenModel } from 'src/models/tokens.model';
 import { WorkModel } from 'src/models/works.model';
+import { AdminModel } from 'src/governance/models/admin.model';
+import { AdminSessionModel } from 'src/governance/models/admin-sessions.model';
+import { CategoryModel } from 'src/models/categories.model';
+import { WorkCategoryModel } from 'src/models/work-categories.model';
 
 @Module({
   imports: [
@@ -32,6 +36,10 @@ import { WorkModel } from 'src/models/works.model';
             SessionModel,
             TokenModel,
             WorkModel,
+            AdminModel,
+            AdminSessionModel,
+            CategoryModel,
+            WorkCategoryModel,
           ],
           autoLoadEntities: true,
           synchronize: true,

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsString, IsUUID } from "class-validator";
 
 
 export class CreateWorkDto {
@@ -23,4 +23,14 @@ export class CreateWorkDto {
   })
   @IsString()
   public deadline: Date;
+
+  @ApiProperty({
+    description: 'Category names of the work',
+    type: [String],
+    example: ['Web Development', 'Graphic Design'],
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  categoryNames: string[];
 }

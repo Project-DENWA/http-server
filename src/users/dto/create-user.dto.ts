@@ -1,27 +1,36 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
+import { IsLettersNumbers } from '../decorators/is-letters-numbers.decorators';
 import { minLetters } from '../decorators/min-letters.decorator';
 import { minNumbers } from '../decorators/min-numbers.decorator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'Ivanov Ivan', description: 'Full name' })
-  @IsString({ message: 'The full name field must be a string' })
+  @ApiProperty({ example: 'John Smith', description: 'User full name.' })
+  @IsString({ message: 'The full name field must be a string.' })
   readonly fullname: string;
 
-  @ApiProperty({ example: 'example@mail.ru', description: 'Email address' })
-  @IsString({ message: 'The email field must be a string' })
-  @IsEmail({}, { message: 'Incorrect value of mail field' })
+  @ApiProperty({
+    example: 'example@email.com',
+    description: 'Account email address.',
+  })
+  @IsString({ message: 'The email field must be a string.' })
+  @IsEmail({}, { message: 'Incorrect value of email field.' })
   readonly email: string;
 
-  @ApiProperty({ example: 'ExampleName', description: 'Username' })
+  @ApiProperty({ example: 'username', description: 'Account username.' })
   @IsString({ message: 'The username field must be a string' })
-  @Matches(/^[A-Za-z0-9 .,'!&]+$/, {
-    message:
-      'Username must contain only latin letters, number and special characters',
+  @IsLettersNumbers({
+    message: 'Username must contain only latin letters and numbers',
   })
   readonly username: string;
 
-  @ApiProperty({ example: 'hdu2ncn126', description: 'User password' })
+  @ApiProperty({ example: 'password123!', description: 'Account password.' })
   @IsString({ message: 'The password field must be a string' })
   @Matches(/^[A-Za-z0-9 .,'!&]+$/, {
     message:

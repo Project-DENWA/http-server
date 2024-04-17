@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { AuthModule } from 'src/auth/auth.module';
+import { SessionsModule } from 'src/sessions/sessions.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModel } from 'src/models/user.model';
 import { EmailModel } from 'src/models/email.model';
@@ -14,6 +15,7 @@ import { NotificationModel } from 'src/models/notification.model';
   providers: [UsersService],
   imports: [
     forwardRef(() => AuthModule),
+    SessionsModule,
     TypeOrmModule.forFeature([
       UserModel,
       MetaModel,

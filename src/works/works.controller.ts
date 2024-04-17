@@ -4,8 +4,8 @@ import { WorksService } from './works.service';
 import { CreateWorkDto } from './dto/create-work.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import ResponseRo from 'src/common/ro/Response.ro';
-import { AuthenticatedRequest } from 'src/interfaces/authenticated-request.interface';
-import { PublicWorkRo } from './ro/public-work.dto';
+import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
+import { PublicWorkRo } from './ro/public-work.ro';
 
 @ApiTags('Works')
 @Controller('works')

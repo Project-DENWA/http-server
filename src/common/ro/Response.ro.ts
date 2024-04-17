@@ -17,5 +17,5 @@ export default class ResponseRo {
     description: 'The result of the request execution.',
     nullable: true,
   })
-  readonly result: any;
+  readonly result?: any;
 }

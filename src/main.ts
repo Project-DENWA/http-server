@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function start() {
   const PORT = process.env.PORT as string;
@@ -14,6 +15,8 @@ async function start() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   const config = new DocumentBuilder()
     .setTitle('Denwa HTTP routes')
@@ -29,6 +32,17 @@ async function start() {
         in: 'Header',
       },
       'access-token',
+    )
+    .addBearerAuth(
+      {
+        description: `Please enter token in following format: Bearer <JWT>`,
+        name: 'Authorization',
+        bearerFormat: 'Bearer',
+        scheme: 'Bearer',
+        type: 'http',
+        in: 'Header',
+      },
+      'admin-token',
     )
     .build()
 

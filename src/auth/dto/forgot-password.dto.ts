@@ -8,7 +8,10 @@ import {
 } from 'class-validator';
 
 export class ForgotPasswordDto {
-  @ApiProperty({ example: 'example@mail.ru', description: 'Email address' })
+  @ApiProperty({
+    example: 'example@email.com',
+    description: 'Account email address',
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
@@ -16,7 +19,7 @@ export class ForgotPasswordDto {
   @IsEmail({}, { message: 'Invalid email format' })
   readonly email: string;
 
-  @ApiProperty({ example: 'Prpldck', description: 'Username' })
+  @ApiProperty({ example: 'username', description: 'Account username' })
   @IsOptional()
   @IsString()
   @IsNotEmpty()

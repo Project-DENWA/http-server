@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkModel } from 'src/models/works.model';
 import { MetaModel } from 'src/models/meta.model';
 import { AuthModule } from 'src/auth/auth.module';
+import { CategoriesModule } from 'src/categories/categories.module';
+import { WorkCategoryModel } from 'src/models/work-categories.model';
 
 @Module({
   providers: [WorksService],
@@ -16,7 +18,9 @@ import { AuthModule } from 'src/auth/auth.module';
     TypeOrmModule.forFeature([
       WorkModel,
       MetaModel,
-    ])
+      WorkCategoryModel,
+    ]),
+    CategoriesModule,
   ],
 })
 export class WorksModule {}
