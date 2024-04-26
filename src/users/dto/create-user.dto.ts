@@ -11,7 +11,7 @@ import { minLetters } from '../decorators/min-letters.decorator';
 import { minNumbers } from '../decorators/min-numbers.decorator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'John Smith', description: 'User full name.' })
+  @ApiProperty({ example: 'Murat IsMyLove', description: 'User full name.' })
   @IsString({ message: 'The full name field must be a string.' })
   readonly fullname: string;
 

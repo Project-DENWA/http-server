@@ -13,6 +13,8 @@ import { AdminModel } from 'src/governance/models/admin.model';
 import { AdminSessionModel } from 'src/governance/models/admin-sessions.model';
 import { CategoryModel } from 'src/models/categories.model';
 import { WorkCategoryModel } from 'src/models/work-categories.model';
+import { ViewsModel } from 'src/models/views.model';
+import { ImageModel } from 'src/models/images.model';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { WorkCategoryModel } from 'src/models/work-categories.model';
             AdminSessionModel,
             CategoryModel,
             WorkCategoryModel,
+            ViewsModel,
+            ImageModel,
           ],
           autoLoadEntities: true,
           synchronize: true,

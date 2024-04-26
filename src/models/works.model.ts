@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
-import { MetaModel } from "./meta.model";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { UserModel } from "./user.model";
 import { WorkCategoryModel } from "./work-categories.model";
+import { WorkStatus } from "src/works/enums/work-status.enum";
+import { ImageModel } from "./images.model";
 
 @Entity({ name: 'works' })
 export class WorkModel extends BaseEntity {
@@ -14,9 +15,13 @@ export class WorkModel extends BaseEntity {
     @PrimaryColumn({ type: 'uuid', unique: true, generated: 'uuid', })
     public id: string;
 
-    @OneToOne(() => MetaModel)
-    @JoinColumn()
-    public meta: MetaModel
+    @ApiProperty({ example: 'Create a David BabyJenian', description: 'Title of work' })
+    @Column({ type: 'varchar', })
+    public name: string;
+
+    @ApiProperty({ example: 'Typical description', description: 'Description of work', nullable: true })
+    @Column({ type: 'varchar', nullable: true })
+    public description: string | null;
 
     @ApiProperty({
         description: "Cost of the project",
@@ -32,6 +37,21 @@ export class WorkModel extends BaseEntity {
     @Column({ type: 'date' })
     public deadline: Date;
 
+    @ApiProperty({ example: '100', description: 'Number of views' })
+    @Column({ type: 'int', default: 0 })
+    views: number;
+
+    @ApiProperty({
+        example: 'OPEN',
+        description: 'Status of the work (Examples: OPEN, CLOSED, IN PROCESS)',
+    })
+    @Column({
+        type: 'enum',
+        enum: WorkStatus,
+        default: WorkStatus.OPEN,
+    })
+    public status: string;
+
     @ManyToOne(() => UserModel, (user) => user.works,)
     @JoinColumn()
     public user: UserModel;
@@ -44,4 +64,7 @@ export class WorkModel extends BaseEntity {
 
     @OneToMany(() => WorkCategoryModel, (workCategory) => workCategory.work)
     workCategories: WorkCategoryModel[];
+
+    @OneToMany(() => ImageModel, (image) => image.work)
+    images: ImageModel[];
 }

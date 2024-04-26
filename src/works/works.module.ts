@@ -8,7 +8,7 @@ import { MetaModel } from 'src/models/meta.model';
 import { AuthModule } from 'src/auth/auth.module';
 import { CategoriesModule } from 'src/categories/categories.module';
 import { WorkCategoryModel } from 'src/models/work-categories.model';
-
+import { ViewsModule } from 'src/views/views.module';
 @Module({
   providers: [WorksService],
   controllers: [WorksController],
@@ -21,6 +21,7 @@ import { WorkCategoryModel } from 'src/models/work-categories.model';
       WorkCategoryModel,
     ]),
     CategoriesModule,
+    ViewsModule,
   ],
 })
 export class WorksModule {}

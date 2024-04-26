@@ -30,6 +30,17 @@ export class PublicWorkRo {
   })
   readonly id: string;
 
+  @ApiProperty({
+    example: 'Art',
+    description: 'Name',
+  })
+  public name: string;
+
+  @ApiProperty({
+      example: 'A brief description of the object.',
+      description: 'Description',
+  })
+  public description: string | null;
 
   @ApiProperty({
       example: '2023-12-11 23:08:02.949+07',
@@ -55,6 +66,15 @@ export class PublicWorkRo {
   })
   public deadline: Date;
 
+  @ApiProperty({ example: '100', description: 'Number of views' })
+  views: number;
+
+  @ApiProperty({
+    example: 'closed',
+    description: 'Status of the work',
+  })
+  public status: string;
+
   @ApiProperty({
     type: [CategoryRo],
     description: 'List of work categories',
@@ -63,9 +83,12 @@ export class PublicWorkRo {
 
   constructor(work: WorkModel) {
     this.id = work.id;
+    this.name = work.name;
+    this.description = work.description;
     this.cost = work.cost;
     this.deadline = work.deadline;
-    this.meta = work.meta;
+    this.views = work.views;
+    this.status = work.status;
     this.createdAt = work.created_at.getTime().toString();
     this.user = {
       id: work.user.id,

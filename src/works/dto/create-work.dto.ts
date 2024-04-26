@@ -3,11 +3,11 @@ import { ArrayNotEmpty, IsArray, IsString, IsUUID } from "class-validator";
 
 
 export class CreateWorkDto {
-  @ApiProperty({ example: 'ExampleName', description: 'Username' })
+  @ApiProperty({ example: 'Create a David BabyJenian', description: 'Title of work' })
   @IsString()
   readonly title: string;
 
-  @ApiProperty({ example: 'ExampleName', description: 'Username', nullable: true })
+  @ApiProperty({ example: 'Typical description', description: 'Description of work', nullable: true })
   @IsString()
   readonly description?: string | null;
 
