@@ -89,6 +89,7 @@ export class WorksService {
         const workModel = await this.workRepository.findOne({
             relations: {
                 user: true,
+                workCategories: true,
                 images: true,
             },
             where: [
@@ -133,8 +134,9 @@ export class WorksService {
         );
         const query = this.workRepository.createQueryBuilder('work')
             .leftJoinAndSelect('work.user', 'user')
-            .leftJoinAndSelect('work.workCategories', 'categories')
+            .leftJoinAndSelect('work.workCategories', 'workCategory')
             .leftJoinAndSelect('work.images', 'images') 
+            .leftJoinAndSelect('workCategory.category', 'category');
         query.where('(work.status != :status OR work.status IS NULL)', {
             status: WorkStatus.CLOSED,
         });
@@ -162,9 +164,8 @@ export class WorksService {
         const offset = (dto.page - 1) * dto.pageSize;
         query.offset(offset);
         query.limit(dto.pageSize);
-
         try {
-            return query.getMany();
+            return await query.getMany();
           } catch (error) {
             throw new HttpException(
                 'Error when getting a collection feed',
