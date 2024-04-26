@@ -88,6 +88,7 @@ export class WorksController {
         @Query() dto: FeedDto,
         @Req() req: AuthenticatedRequest,
     ) {
-        return await this.worksService.getFeed(dto, req.user.id);
+        const workModels = await this.worksService.getFeed(dto, req.user.id);
+        return workModels.map((work) => new PublicWorkRo(work));
     }
 }
