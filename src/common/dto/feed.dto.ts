@@ -8,7 +8,6 @@ export class FeedDto {
     description: 'Sorting order of the feed',
     required: false,
   })
-  @IsString()
   readonly sort: string | null;
 
   @ApiProperty({
