@@ -14,6 +14,7 @@ import { AdminsModule } from "./governance/admins/admins.module";
 import { ModerationModule } from "./governance/moderation/moderation.module";
 import { CategoriesModule } from './categories/categories.module';
 import { ViewsModule } from './views/views.module';
+import { ResumesModule } from './resumes/resumes.module';
 
 @Module({
   controllers: [],
@@ -35,6 +36,7 @@ import { ViewsModule } from './views/views.module';
     ModerationModule,
     CategoriesModule,
     ViewsModule,
+    ResumesModule,
   ],
 })
 export class AppModule {}

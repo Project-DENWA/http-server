@@ -86,6 +86,9 @@ export class PrivateUser {
   @ApiProperty({ example: 'John Smith', description: 'User full name.' })
   readonly fullname: string;
 
+  @ApiProperty({ example: 'Bio of a user', description: 'Bio description' })
+  public bio: string;
+
   @ApiProperty({
     example: '2023-12-11 23:08:02.949+07',
     description: 'User creation date',
@@ -110,6 +113,7 @@ export class PrivateUser {
   constructor(userModel: UserModel) {
     this.id = userModel.id;
     this.fullname = userModel.fullname;
+    this.bio = userModel.bio;
     this.createdAt = userModel.created_at.getTime().toString();
     this.meta = userModel.meta;
     this.email = userModel.email;

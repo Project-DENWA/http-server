@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { WorkCategoryModel } from "./work-categories.model";
+import { ResumeCategoryModel } from "./resume-categories.model";
 
 @Entity({ name: 'categories' })
 export class CategoryModel extends BaseEntity {
@@ -17,7 +18,9 @@ export class CategoryModel extends BaseEntity {
   })
   name: string;
 
-  
   @OneToMany(() => WorkCategoryModel, (workCategory) => workCategory.category)
   workCategories: WorkCategoryModel[];
+
+  @OneToMany(() => ResumeCategoryModel, (resumeCategory) => resumeCategory.category)
+  resumeCategories: ResumeCategoryModel[];
 }

@@ -93,6 +93,7 @@ export class PublicWorkRo {
     this.user = {
       id: work.user.id,
       fullname: work.user.fullname,
+      bio: work.user.bio,
       email: work.user.email,
       meta: work.user.meta,
       avatar: work.user.avatar,

@@ -28,11 +28,8 @@ export class CategoriesController {
             }
         }
 
-    // @dev create JWT admin guard
     @ApiOperation({ summary: 'Get a category' })
-    //@ApiBearerAuth('admin-token')
-    //@UseGuard(AdminAuthGuard)
-    @Get('/getCategory/:name')
+    @Get('/get-category/:name')
     async getCategory(@Param('name') categoryName: string): Promise<ResponseRo> {
         const categoriesModel = await this.categoriesService.getCategory({ name: categoryName });
         if (!categoriesModel) {

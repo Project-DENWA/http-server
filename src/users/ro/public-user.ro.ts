@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { getAddress } from 'viem';
 import { UserModel } from 'src/models/user.model';
 
 class EmailRo {
@@ -69,6 +68,9 @@ export class PublicUser {
   @ApiProperty({ example: 'John Smith', description: 'User full name.' })
   readonly fullname: string;
 
+  @ApiProperty({ example: 'Bio of a user', description: 'Bio description' })
+  public bio: string;
+
   @ApiProperty({
     example: '2023-12-11 23:08:02.949+07',
     description: 'User creation date.',
@@ -87,6 +89,7 @@ export class PublicUser {
   constructor(user: UserModel) {
     this.id = user.id;
     this.fullname = user.fullname;
+    this.bio = user.bio;
     this.createdAt = user.created_at.getTime().toString();
     this.meta = user.meta;
     this.email = user.email;

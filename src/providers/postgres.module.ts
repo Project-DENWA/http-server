@@ -15,6 +15,9 @@ import { CategoryModel } from 'src/models/categories.model';
 import { WorkCategoryModel } from 'src/models/work-categories.model';
 import { ViewsModel } from 'src/models/views.model';
 import { ImageModel } from 'src/models/images.model';
+import { SocialModel } from 'src/models/social.model';
+import { ResumeModel } from 'src/models/resumes.model';
+import { ResumeCategoryModel } from 'src/models/resume-categories.model';
 
 @Module({
   imports: [
@@ -44,6 +47,9 @@ import { ImageModel } from 'src/models/images.model';
             WorkCategoryModel,
             ViewsModel,
             ImageModel,
+            SocialModel,
+            ResumeModel,
+            ResumeCategoryModel,
           ],
           autoLoadEntities: true,
           synchronize: true,
