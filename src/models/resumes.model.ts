@@ -4,12 +4,13 @@ import { SocialModel } from "./social.model";
 import { UserModel } from "./user.model";
 import { ResumeCategoryModel } from "./resume-categories.model";
 import { ResumeStatus } from "src/resumes/enums/resume-status.enum";
+import { FeedbackModel } from "./feedbacks.model";
 
 @Entity({ name: 'resumes' })
 export class ResumeModel extends BaseEntity {
   @ApiProperty({
     example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
-    description: 'Unique user ID',
+    description: 'Unique resume ID',
   })
   @PrimaryColumn({ type: 'uuid', unique: true, generated: 'uuid' })
   public id: string;
@@ -63,12 +64,15 @@ export class ResumeModel extends BaseEntity {
   @JoinColumn()
   public social: SocialModel;
 
-  @OneToOne(() => UserModel)
+  @OneToOne(() => UserModel, user => user.resume)
   @JoinColumn()
   public user: UserModel;
 
   @OneToMany(() => ResumeCategoryModel, (resumeCategory) => resumeCategory.resume)
   resumeCategories: ResumeCategoryModel[];
+
+  @OneToMany(() => FeedbackModel, (feedback) => feedback.work)
+  feedback: FeedbackModel[];
 
 //   @OneToMany(() => ComplaintModel, (complaint) => complaint.user)
 //   @JoinColumn()

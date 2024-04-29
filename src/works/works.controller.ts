@@ -10,6 +10,7 @@ import { FeedDto } from 'src/common/dto/feed.dto';
 import { GetWorkDto } from './dto/get-work.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerImageConfig } from 'src/config/multer-image.config';
+import { EmailVerifiedGuard } from 'src/users/guards/email-verified.guard';
 
 @ApiTags('Works')
 @Controller('works')
@@ -19,10 +20,10 @@ export class WorksController {
     ) {}
 
     @ApiOperation({ summary: 'Create a work' })
-    @ApiConsumes('multipart/form-data')
+    //@ApiConsumes('multipart/form-data')
     @ApiCreatedResponse({ type: CreateWorkDto })
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
     @UseInterceptors(FilesInterceptor('images', 4, multerImageConfig))
     @Post('/create')
     async createWork(

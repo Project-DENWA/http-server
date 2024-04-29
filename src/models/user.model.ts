@@ -16,6 +16,7 @@ import { AvatarModel } from './avatar.model';
 import { NotificationModel } from './notification.model';
 import { SessionModel } from './sessions.model';
 import { WorkModel } from './works.model';
+import { ResumeModel } from './resumes.model';
 
 @Entity({ name: 'users' })
 export class UserModel extends BaseEntity {
@@ -53,6 +54,7 @@ export class UserModel extends BaseEntity {
     default: () => 'CURRENT_TIMESTAMP(6)',
   })
   public created_at: Date;
+  
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP(6)',
@@ -75,6 +77,10 @@ export class UserModel extends BaseEntity {
   @OneToOne(() => NotificationModel)
   @JoinColumn()
   public notification: NotificationModel;
+
+  @OneToOne(() => ResumeModel, resume => resume.user)
+  @JoinColumn()
+  public resume: ResumeModel;
 
   @OneToMany(() => WorkModel, (work) => work.user)
   @JoinColumn()

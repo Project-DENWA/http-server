@@ -88,6 +88,7 @@ export class UsersService {
         avatar: true,
         notification: true,
         sessions: true,
+        resume: true,
       },
       where: [
         { id },

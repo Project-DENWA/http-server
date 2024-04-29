@@ -4,6 +4,7 @@ import { UserModel } from "./user.model";
 import { WorkCategoryModel } from "./work-categories.model";
 import { WorkStatus } from "src/works/enums/work-status.enum";
 import { ImageModel } from "./images.model";
+import { FeedbackModel } from "./feedbacks.model";
 
 @Entity({ name: 'works' })
 export class WorkModel extends BaseEntity {
@@ -64,6 +65,9 @@ export class WorkModel extends BaseEntity {
 
     @OneToMany(() => WorkCategoryModel, (workCategory) => workCategory.work)
     workCategories: WorkCategoryModel[];
+
+    @OneToMany(() => FeedbackModel, (feedback) => feedback.work)
+    feedback: FeedbackModel[];
 
     @OneToMany(() => ImageModel, (image) => image.work)
     images: ImageModel[];

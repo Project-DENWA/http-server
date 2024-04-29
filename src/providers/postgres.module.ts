@@ -18,6 +18,7 @@ import { ImageModel } from 'src/models/images.model';
 import { SocialModel } from 'src/models/social.model';
 import { ResumeModel } from 'src/models/resumes.model';
 import { ResumeCategoryModel } from 'src/models/resume-categories.model';
+import { FeedbackModel } from 'src/models/feedbacks.model';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ResumeCategoryModel } from 'src/models/resume-categories.model';
             SocialModel,
             ResumeModel,
             ResumeCategoryModel,
+            FeedbackModel,
           ],
           autoLoadEntities: true,
           synchronize: true,

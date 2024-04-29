@@ -22,5 +22,8 @@ import { CategoriesModule } from 'src/categories/categories.module';
       UsersModule,
       CategoriesModule,
   ],
+  exports: [
+    ResumesService,
+  ],
 })
 export class ResumesModule {}

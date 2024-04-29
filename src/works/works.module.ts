@@ -23,5 +23,8 @@ import { ViewsModule } from 'src/views/views.module';
     CategoriesModule,
     ViewsModule,
   ],
+  exports: [
+    WorksService,
+  ],
 })
 export class WorksModule {}

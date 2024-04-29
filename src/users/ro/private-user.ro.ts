@@ -3,6 +3,10 @@ import { getAddress } from 'viem';
 import { UserModel } from 'src/models/user.model';
 import ResponseRo from 'src/common/ro/Response.ro';
 import { Type } from 'class-transformer';
+import { ResumeModel } from 'src/models/resumes.model';
+import { SocialModel } from 'src/models/social.model';
+import { ResumeCategoryModel } from 'src/models/resume-categories.model';
+import { PublicResumeRo } from 'src/resumes/ro/public-resume.ro';
 
 class EmailRo {
   @ApiProperty({
@@ -76,6 +80,23 @@ class MetaRo {
   readonly description: string | null;
 }
 
+class ResumeRo {
+  id: string;
+  description: string | null;
+  verified: boolean;
+  rating: number;
+  status: string;
+  created_at: Date;
+
+  constructor(resume: ResumeModel) {
+    this.id = resume.id;
+    this.description = resume.description;
+    this.verified = resume.verified;
+    this.rating = resume.rating;
+    this.status = resume.status;
+}
+}
+
 export class PrivateUser {
   @ApiProperty({
     example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
@@ -104,6 +125,9 @@ export class PrivateUser {
   @ApiProperty({ type: AvatarRo, description: 'User avatar' })
   readonly avatar: AvatarRo;
 
+  @ApiProperty({ type: ResumeRo, description: 'User resume' })
+  public resume: ResumeRo;
+
   @ApiProperty({
     type: NotificationRo,
     description: 'User notification preferences',
@@ -119,6 +143,8 @@ export class PrivateUser {
     this.email = userModel.email;
     this.avatar = userModel.avatar;
     this.notification = userModel.notification;
+    if (userModel.resume)
+      this.resume = new ResumeRo(userModel.resume);
   }
 }
 
