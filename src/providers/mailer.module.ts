@@ -8,8 +8,8 @@ import { join } from 'path';
     MailerModule.forRoot({
       transport: {
         host: 'smtp.mail.ru',
-        port: 587,
-        secure: false,
+        port: 465,
+        secure: true,
         auth: {
           user: process.env.MAILDEV_INCOMING_USER as string,
           pass: process.env.MAILDEV_INCOMING_PASS as string,
