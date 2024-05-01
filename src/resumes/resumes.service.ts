@@ -24,11 +24,16 @@ export class ResumesService {
     public async create(dto: CreateResumeDto, userId: string) {
         return await this.dataSource.transaction(async (manager) => {
             const userModel = await this.usersService.getUserOrThrow({ id: userId })
-            const existingResumeModel = await this.getResume({ userId })
+            const existingResumeModel = await this.getResume({ userId, tagname: dto.tagname })
             if (existingResumeModel)
-                throw new HttpException('You already have a resume', HttpStatus.CONFLICT)
-        
+                if (existingResumeModel.user.id == userId) {
+                    throw new HttpException('You already have a resume', HttpStatus.CONFLICT)    
+                } else {
+                    throw new HttpException('A resume with the same tagname already exists', HttpStatus.CONFLICT)    
+                }
+                
             const resumeModel = new ResumeModel();
+            resumeModel.tagname = dto.tagname;
             resumeModel.description = dto.description;
             resumeModel.user = userModel;
 
@@ -44,24 +49,24 @@ export class ResumesService {
             await manager.save(socialModel);
             await manager.save(resumeModel);
             
-            for (const categoryName of dto.categories.name) {
-                const categoryModel = await this.categoriesService.getCategory({ name: categoryName });
+            for (const category of dto.categories) {
+                const categoryModel = await this.categoriesService.getCategory({ name: category.name });
                 if (!categoryModel)
-                    throw new HttpException(`Category '${categoryName}' not found`, HttpStatus.NOT_FOUND);
+                    throw new HttpException(`Category '${category.name}' not found`, HttpStatus.NOT_FOUND);
                 const resumeCategoryModel = new ResumeCategoryModel();
                 resumeCategoryModel.resume = resumeModel;
                 resumeCategoryModel.category = categoryModel;
-                resumeCategoryModel.exp = dto.categories.exp;
+                resumeCategoryModel.exp = category.exp;
                 await manager.save(resumeCategoryModel);
             }
-            for (const languageName of dto.languages.name) {
-                const languageModel = await this.languagesService.getLanguage({ name: languageName });
+            for (const language of dto.languages) {
+                const languageModel = await this.languagesService.getLanguage({ name: language.name });
                 if (!languageModel)
-                    throw new HttpException(`Language '${languageName}' not found`, HttpStatus.NOT_FOUND);
+                    throw new HttpException(`Language '${language.name}' not found`, HttpStatus.NOT_FOUND);
                 const resumeLanguageModel = new ResumeLanguageModel();
                 resumeLanguageModel.resume = resumeModel;
                 resumeLanguageModel.language = languageModel;
-                resumeLanguageModel.level = dto.languages.level;
+                resumeLanguageModel.level = language.level;
                 await manager.save(resumeLanguageModel);
             }
     
@@ -72,19 +77,23 @@ export class ResumesService {
     public async getResume({
         id,
         userId,
+        tagname,
     }: {
         id?: string;
         userId?: string;
+        tagname?: string;
     }): Promise<ResumeModel> {
         const resumeModel = await this.resumesRepository.findOne({
             relations: {
                 social: true,
                 user: true,
                 resumeCategories: true,
+                resumeLanguages: true,
             },
             where: [
                 { id },
                 { user: { id: userId } },
+                { tagname },
             ],
         });
 
@@ -94,11 +103,13 @@ export class ResumesService {
     public async getResumeOrThrow({
         id,
         userId,
+        tagname,
     }: {
         id?: string;
         userId?: string;
+        tagname?: string;
     }): Promise<ResumeModel> {
-        const resumeModel = await this.getResume({ id, userId })
+        const resumeModel = await this.getResume({ id, userId, tagname })
         if (!resumeModel)
             throw new HttpException('Resume not found', HttpStatus.NOT_FOUND);
         return resumeModel;

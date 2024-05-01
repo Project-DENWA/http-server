@@ -77,7 +77,7 @@ export class ResumeModel extends BaseEntity {
   resumeCategories: ResumeCategoryModel[];
 
   @OneToMany(() => ResumeLanguageModel, (resumeLanguage) => resumeLanguage.resume)
-  resumeLanguages: ResumeCategoryModel[];
+  resumeLanguages: ResumeLanguageModel[];
 
   @OneToMany(() => FeedbackModel, (feedback) => feedback.work)
   feedback: FeedbackModel[];

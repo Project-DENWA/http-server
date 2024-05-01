@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntity, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ResumeModel } from "./resumes.model";
 import { CategoryModel } from "./categories.model";
 
@@ -14,6 +14,9 @@ export class ResumeCategoryModel extends BaseEntity {
       '2m',
       '4y',
     ],
+  })
+  @Column({
+    type: 'varchar',
   })
   exp: string;
 

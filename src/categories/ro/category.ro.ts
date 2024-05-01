@@ -19,3 +19,29 @@ export class CategoryRo {
       this.name = category.name;
     }
   }
+
+  export class CategoryExpRo {
+    @ApiProperty({
+      example: 'e8c2a758-95bd-4c28-908f-c8f2b911de6f',
+      description: 'Unique category ID',
+    })
+    readonly id: string;
+  
+    @ApiProperty({
+      example: 'Backend',
+      description: 'Category name',
+    })
+    readonly name: string;
+
+    @ApiProperty({
+      example: '2 years',
+      description: 'Experience in this category',
+    })
+    exp: string;
+  
+    constructor(category: CategoryModel, exp: string) {
+      this.id = category.id;
+      this.name = category.name;
+      this.exp =  exp;
+    }
+  }

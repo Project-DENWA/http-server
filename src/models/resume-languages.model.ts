@@ -16,7 +16,6 @@ export class ResumeLanguageModel extends BaseEntity {
     @Column({
         type: 'enum',
         enum: LanguageLevel,
-        default: LanguageLevel.PRE_INTERMEDIATE,
     })
     level: LanguageLevel;
 

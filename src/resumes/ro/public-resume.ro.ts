@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { CategoryRo } from "src/categories/ro/category.ro";
+import { CategoryExpRo } from "src/categories/ro/category.ro";
 import ResponseRo from "src/common/ro/Response.ro";
+import { LanguageLevelRo } from "src/languages/ro/language.ro";
 import { ResumeModel } from "src/models/resumes.model";
 import { PublicUser } from "src/users/ro/public-user.ro";
 
@@ -69,10 +70,16 @@ export class PublicResumeRo {
   readonly user: PublicUser;
 
   @ApiProperty({
-    type: [CategoryRo],
+    type: [CategoryExpRo],
     description: 'List of resume categories',
   })
-  readonly categories: CategoryRo[];
+  readonly categories: CategoryExpRo[];
+
+  @ApiProperty({
+    type: [LanguageLevelRo],
+    description: 'List of resume languages',
+  })
+  readonly languages: LanguageLevelRo[];
 
   constructor(resume: ResumeModel) {
     this.id = resume.id;
@@ -89,7 +96,12 @@ export class PublicResumeRo {
       meta: resume.user.meta,
       avatar: resume.user.avatar,
     };
-    this.categories = resume.resumeCategories?.map(category => new CategoryRo(category.category)) || [];
+    this.categories = resume.resumeCategories?.map(category => {
+       return new CategoryExpRo(category.category, category.exp); 
+      }) || [];
+    this.languages = resume.resumeLanguages?.map(language => {
+      return new LanguageLevelRo(language.language, language.level); 
+    }) || [];
   }
 }
 
