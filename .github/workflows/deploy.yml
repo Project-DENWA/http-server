@@ -27,6 +27,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm build
+      - name: Deploy to Server
+        run: |
+          ssh -o StrictHostKeyChecking=no root@79.174.80.17 'bash -s' < deploy_script.sh
       - name: SSH into VPS and update code
         uses: appleboy/ssh-action@master
         with:

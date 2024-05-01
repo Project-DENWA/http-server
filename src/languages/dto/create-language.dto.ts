@@ -7,10 +7,4 @@ export class CreateLanguageDto {
         description: 'Language name',
     })
     name: string;
-
-    // @ApiProperty({
-    //     example: LanguageLevel.PRE_INTERMEDIATE,
-    //     description: 'Status of the work (Examples: Beginner, Elementary, Pre-Intermediate, Upper-Intermediate, Advanced, Proficiency)',
-    // })
-    // level: LanguageLevel;
 }
