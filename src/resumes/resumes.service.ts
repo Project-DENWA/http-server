@@ -7,6 +7,8 @@ import { UsersService } from 'src/users/users.service';
 import { SocialModel } from 'src/models/social.model';
 import { CategoriesService } from 'src/categories/categories.service';
 import { ResumeCategoryModel } from 'src/models/resume-categories.model';
+import { LanguagesService } from 'src/languages/languages.service';
+import { ResumeLanguageModel } from 'src/models/resume-languages.model';
 
 @Injectable()
 export class ResumesService {
@@ -16,6 +18,7 @@ export class ResumesService {
         private readonly dataSource: DataSource,
         private readonly usersService: UsersService,
         private readonly categoriesService: CategoriesService,
+        private readonly languagesService: LanguagesService,
     ) {}
 
     public async create(dto: CreateResumeDto, userId: string) {
@@ -31,7 +34,13 @@ export class ResumesService {
 
             const socialModel = new SocialModel();
             resumeModel.social = socialModel;
-    
+            if (dto.socials) {
+                if (dto.socials.websiteURL) socialModel.website = dto.socials.websiteURL;
+                if (dto.socials.github) socialModel.github = dto.socials.github;
+                if (dto.socials.telegram) socialModel.telegram = dto.socials.telegram;
+                if (dto.socials.discord) socialModel.discord = dto.socials.discord;
+            }
+            
             await manager.save(socialModel);
             await manager.save(resumeModel);
             
@@ -43,6 +52,16 @@ export class ResumesService {
                 resumeCategoryModel.resume = resumeModel;
                 resumeCategoryModel.category = categoryModel;
                 await manager.save(resumeCategoryModel);
+            }
+            for (const languageName of dto.languages.name) {
+                const languageModel = await this.languagesService.getLanguage({ name: languageName });
+                if (!languageModel)
+                    throw new HttpException(`Language '${languageName}' not found`, HttpStatus.NOT_FOUND);
+                const resumeLanguageModel = new ResumeLanguageModel();
+                resumeLanguageModel.resume = resumeModel;
+                resumeLanguageModel.language = languageModel;
+                resumeLanguageModel.level = dto.languages.level;
+                await manager.save(resumeLanguageModel);
             }
     
             return resumeModel;

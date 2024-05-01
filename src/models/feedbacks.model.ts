@@ -25,7 +25,7 @@ export class FeedbackModel extends BaseEntity {
         enum: FeedbackStatus,
         default: FeedbackStatus.UNCONFIRMED,
     })
-    public status: string;
+    public status: FeedbackStatus;
 
     @CreateDateColumn({
         type: 'timestamp',

@@ -8,6 +8,8 @@ import { ResumeCategoryModel } from 'src/models/resume-categories.model';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { CategoriesModule } from 'src/categories/categories.module';
+import { ResumeLanguageModel } from 'src/models/resume-languages.model';
+import { LanguagesModule } from 'src/languages/languages.module';
 
 @Module({
   providers: [ResumesService],
@@ -17,10 +19,12 @@ import { CategoriesModule } from 'src/categories/categories.module';
         ResumeModel,
         SocialModel,
         ResumeCategoryModel,
+        ResumeLanguageModel,
       ]),
       AuthModule,
       UsersModule,
       CategoriesModule,
+      LanguagesModule,
   ],
   exports: [
     ResumesService,

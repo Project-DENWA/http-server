@@ -5,6 +5,7 @@ import { UserModel } from "./user.model";
 import { ResumeCategoryModel } from "./resume-categories.model";
 import { ResumeStatus } from "src/resumes/enums/resume-status.enum";
 import { FeedbackModel } from "./feedbacks.model";
+import { ResumeLanguageModel } from "./resume-languages.model";
 
 @Entity({ name: 'resumes' })
 export class ResumeModel extends BaseEntity {
@@ -14,6 +15,10 @@ export class ResumeModel extends BaseEntity {
   })
   @PrimaryColumn({ type: 'uuid', unique: true, generated: 'uuid' })
   public id: string;
+
+  @ApiProperty({ description: 'Unique tag for resume', example: 'Eugener3' })
+  @Column({ type: 'varchar', unique: true })
+  tagname: string;
 
   @ApiProperty({
     example: 'A brief description of the object.',
@@ -37,7 +42,7 @@ export class ResumeModel extends BaseEntity {
   rating: number;
 
   @ApiProperty({
-    example: 'OPEN',
+    example: ResumeStatus.WORKING,
     description: 'Status of the resume (Examples: WORKING, BANNED)',
   })
   @Column({
@@ -45,7 +50,7 @@ export class ResumeModel extends BaseEntity {
       enum: ResumeStatus,
       default: ResumeStatus.WORKING,
   })
-  public status: string;
+  public status: ResumeStatus;
 
   @CreateDateColumn({
     type: 'timestamp',
@@ -70,6 +75,9 @@ export class ResumeModel extends BaseEntity {
 
   @OneToMany(() => ResumeCategoryModel, (resumeCategory) => resumeCategory.resume)
   resumeCategories: ResumeCategoryModel[];
+
+  @OneToMany(() => ResumeLanguageModel, (resumeLanguage) => resumeLanguage.resume)
+  resumeLanguages: ResumeCategoryModel[];
 
   @OneToMany(() => FeedbackModel, (feedback) => feedback.work)
   feedback: FeedbackModel[];

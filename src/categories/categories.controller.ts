@@ -16,28 +16,28 @@ export class CategoriesController {
     ) {}
 
     @ApiOperation({ summary: 'Create a category' })
-        @ApiBearerAuth('admin-token')
-        @UseGuards(JwtAdminGuard, RolesGuard)
-        @Roles(Role.ADMINISTRATOR)
-        @Post('/create-category')
-        async createCategory(@Body() dto: CreateCategoryDto): Promise<ResponseRo> {
-            await this.categoriesService.createCategory(dto);
-            return {
-                ok: true,
-                message: 'The category has been successfuly added',
-            }
+    @ApiBearerAuth('admin-token')
+    @UseGuards(JwtAdminGuard, RolesGuard)
+    @Roles(Role.ADMINISTRATOR)
+    @Post('/create-category')
+    async createCategory(@Body() dto: CreateCategoryDto): Promise<ResponseRo> {
+        await this.categoriesService.createCategory(dto);
+        return {
+            ok: true,
+            message: 'The category has been successfuly added',
         }
+    }
 
     @ApiOperation({ summary: 'Get a category' })
     @Get('/get-category/:name')
     async getCategory(@Param('name') categoryName: string): Promise<ResponseRo> {
-        const categoriesModel = await this.categoriesService.getCategory({ name: categoryName });
-        if (!categoriesModel) {
+        const categoryModel = await this.categoriesService.getCategory({ name: categoryName });
+        if (!categoryModel) {
             throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
         }
         return {
             ok: true,
-            result: categoriesModel,
+            result: categoryModel,
         }
     }
 

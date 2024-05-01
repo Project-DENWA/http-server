@@ -19,6 +19,8 @@ import { SocialModel } from 'src/models/social.model';
 import { ResumeModel } from 'src/models/resumes.model';
 import { ResumeCategoryModel } from 'src/models/resume-categories.model';
 import { FeedbackModel } from 'src/models/feedbacks.model';
+import { LanguageModel } from 'src/models/languages.model';
+import { ResumeLanguageModel } from 'src/models/resume-languages.model';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { FeedbackModel } from 'src/models/feedbacks.model';
             ResumeModel,
             ResumeCategoryModel,
             FeedbackModel,
+            LanguageModel,
+            ResumeLanguageModel,
           ],
           autoLoadEntities: true,
           synchronize: true,

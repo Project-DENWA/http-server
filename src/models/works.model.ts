@@ -43,7 +43,7 @@ export class WorkModel extends BaseEntity {
     views: number;
 
     @ApiProperty({
-        example: 'OPEN',
+        example: WorkStatus.OPEN,
         description: 'Status of the work (Examples: OPEN, CLOSED, IN PROCESS)',
     })
     @Column({
@@ -51,7 +51,7 @@ export class WorkModel extends BaseEntity {
         enum: WorkStatus,
         default: WorkStatus.OPEN,
     })
-    public status: string;
+    public status: WorkStatus;
 
     @ManyToOne(() => UserModel, (user) => user.works,)
     @JoinColumn()
