@@ -40,17 +40,18 @@ export class ResumesService {
                 if (dto.socials.telegram) socialModel.telegram = dto.socials.telegram;
                 if (dto.socials.discord) socialModel.discord = dto.socials.discord;
             }
-            
+
             await manager.save(socialModel);
             await manager.save(resumeModel);
             
-            for (const categoryName of dto.categoryNames) {
+            for (const categoryName of dto.categories.name) {
                 const categoryModel = await this.categoriesService.getCategory({ name: categoryName });
                 if (!categoryModel)
                     throw new HttpException(`Category '${categoryName}' not found`, HttpStatus.NOT_FOUND);
                 const resumeCategoryModel = new ResumeCategoryModel();
                 resumeCategoryModel.resume = resumeModel;
                 resumeCategoryModel.category = categoryModel;
+                resumeCategoryModel.exp = dto.categories.exp;
                 await manager.save(resumeCategoryModel);
             }
             for (const languageName of dto.languages.name) {

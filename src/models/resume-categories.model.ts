@@ -9,6 +9,15 @@ export class ResumeCategoryModel extends BaseEntity {
   id: string;
 
   @ApiProperty({
+    description: 'Work experience',
+    examples: [
+      '2m',
+      '4y',
+    ],
+  })
+  exp: string;
+
+  @ApiProperty({
     description: 'Resume',
   })
   @ManyToOne(() => ResumeModel, (resume) => resume.resumeCategories, {

@@ -14,14 +14,17 @@ export class CreateResumeDto {
     description: string | null;
 
     @ApiProperty({
-        description: 'Category names of the resume',
-        type: [String],
-        example: ['Web Development', 'Graphic Design'],
+        description: 'Categories of the resume',
+        example: {
+            name: 'Frontend',
+            exp: '2m',
+        },
     })
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsString({ each: true })
-    categoryNames: string[];
+    @IsObject()
+    categories: {
+      name: string,
+      exp: string,
+    };
 
     @ApiProperty({
       description: 'Language objects of the resume',
