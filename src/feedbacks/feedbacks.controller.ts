@@ -18,7 +18,7 @@ export class FeedbacksController {
     @ApiOperation({ summary: 'Create a feedback' })
     @ApiCreatedResponse({ description: 'Successfull create feedback' })
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+    @UseGuards(JwtAuthGuard/*, EmailVerifiedGuard*/)
     @Post('/create')
     async create(
         @Body() dto: CreateFeedbackDto,

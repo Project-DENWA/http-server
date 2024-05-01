@@ -23,7 +23,7 @@ export class WorksController {
     //@ApiConsumes('multipart/form-data')
     @ApiCreatedResponse({ type: CreateWorkDto })
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+    @UseGuards(JwtAuthGuard/*, EmailVerifiedGuard*/)
     @UseInterceptors(FilesInterceptor('images', 4, multerImageConfig))
     @Post('/create')
     async createWork(

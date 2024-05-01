@@ -17,7 +17,7 @@ export class ResumesController {
     @ApiOperation({ summary: 'Create a resume' })
     @ApiCreatedResponse({ description: 'Successfull create resume' })
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+    @UseGuards(JwtAuthGuard/*, EmailVerifiedGuard*/)
     @Post('/create')
     async create(
         @Body() dto: CreateResumeDto,
