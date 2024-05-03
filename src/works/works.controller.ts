@@ -41,11 +41,11 @@ export class WorksController {
     }
 
     @ApiOperation({ summary: 'Get work' })
-    @Get('/:name')
+    @Get('/:id')
     async getOneWork(
-        @Param('name') name: string
+        @Param('id') id: string
     ): Promise<ResponseRo> {
-        const workModel =  await this.worksService.getWork({ name }) 
+        const workModel =  await this.worksService.getWorkOrThrow({ id }) 
         if (!workModel) {
             throw new HttpException('Work not found', HttpStatus.NOT_FOUND)
         }
