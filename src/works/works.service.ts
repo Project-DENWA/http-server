@@ -91,6 +91,7 @@ export class WorksService {
                 user: true,
                 workCategories: true,
                 images: true,
+                feedbacks: true,
             },
             where: [
                 { id },
@@ -136,7 +137,8 @@ export class WorksService {
             .leftJoinAndSelect('work.user', 'user')
             .leftJoinAndSelect('work.workCategories', 'workCategory')
             .leftJoinAndSelect('work.images', 'images') 
-            .leftJoinAndSelect('workCategory.category', 'category');
+            .leftJoinAndSelect('workCategory.category', 'category')
+            .leftJoinAndSelect('work.feedbacks', 'feedbacks');
         query.where('(work.status != :status OR work.status IS NULL)', {
             status: WorkStatus.CLOSED,
         });
@@ -148,11 +150,12 @@ export class WorksService {
         }
 
         if (dto.sort === 'relevance') {
-            query.addSelect(
-                'work.views',
-                'relevance',
-            );
-            query.addOrderBy('relevance', 'DESC');
+            query.addOrderBy('work.views', 'DESC');
+        } else if (dto.sort === 'own') {
+            query.where('work.user.id = :userId', {
+                userId
+            });
+            query.addOrderBy('work.created_at', 'DESC');
         } else {
             query.addOrderBy('work.created_at', 'DESC');
         }

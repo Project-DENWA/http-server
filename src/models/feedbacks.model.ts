@@ -36,7 +36,7 @@ export class FeedbackModel extends BaseEntity {
     @ApiProperty({
         description: 'Work',
     })
-    @ManyToOne(() => WorkModel, (work) => work.feedback, {
+    @ManyToOne(() => WorkModel, (work) => work.feedbacks, {
         eager: true,
     })
     @JoinColumn()

@@ -11,6 +11,7 @@ import { GetWorkDto } from './dto/get-work.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerImageConfig } from 'src/config/multer-image.config';
 import { EmailVerifiedGuard } from 'src/users/guards/email-verified.guard';
+import { PrivateWorkRo } from './ro/private-work.ro';
 
 @ApiTags('Works')
 @Controller('works')
@@ -41,24 +42,32 @@ export class WorksController {
     }
 
     @ApiOperation({ summary: 'Get work' })
+    @ApiBearerAuth('access-token')
+    @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async getOneWork(
-        @Param('id') id: string
+        @Param('id') id: string,
+        @Req() req: AuthenticatedRequest,
     ): Promise<ResponseRo> {
-        const workModel =  await this.worksService.getWorkOrThrow({ id }) 
-        if (!workModel) {
-            throw new HttpException('Work not found', HttpStatus.NOT_FOUND)
+        const workModel =  await this.worksService.getWorkOrThrow({ id })
+        let result;
+        if (workModel.user.id == req.user.id) {
+            result = new PrivateWorkRo(workModel);
+        } else {
+            result = new PublicWorkRo(workModel);
         }
 
         return {
             ok: true,
-            result: new PublicWorkRo(workModel),
+            result,
         }
     }
 
     @ApiOperation({ summary: 'Get all works' })
     @Get('/')
-    async getAllWorks(): Promise<ResponseRo> {
+    async getAllWorks(
+
+    ): Promise<ResponseRo> {
         const workModels = await this.worksService.getAll()
         return {
             ok: true,

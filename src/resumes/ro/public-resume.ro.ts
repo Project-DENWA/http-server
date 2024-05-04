@@ -39,6 +39,10 @@ export class PublicResumeRo {
   })
   readonly id: string;
 
+  @ApiProperty({ description: 'Unique tag for resume', example: 'Eugener3' })
+  tagname: string;
+
+
   @ApiProperty({
       example: 'A brief description of the object.',
       description: 'Description',
@@ -83,6 +87,7 @@ export class PublicResumeRo {
 
   constructor(resume: ResumeModel) {
     this.id = resume.id;
+    this.tagname = resume.tagname;
     this.description = resume.description;
     this.verified = resume.verified;
     this.rating = resume.rating;

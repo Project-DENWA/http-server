@@ -67,7 +67,7 @@ export class WorkModel extends BaseEntity {
     workCategories: WorkCategoryModel[];
 
     @OneToMany(() => FeedbackModel, (feedback) => feedback.work)
-    feedback: FeedbackModel[];
+    feedbacks: FeedbackModel[];
 
     @OneToMany(() => ImageModel, (image) => image.work)
     images: ImageModel[];

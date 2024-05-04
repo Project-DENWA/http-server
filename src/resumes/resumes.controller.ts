@@ -43,4 +43,17 @@ export class ResumesController {
             result: new PublicResumeRo(resumeModel),
         }
     }
+
+    @ApiOperation({ summary: 'Get resume' })
+    @Get('/by-tag/:tagname')
+    async getByTagname(
+        @Param('tagname') tagname: string,
+    ): Promise<ResumeRo> {
+        const resumeModel =  await this.resumesService.getResumeOrThrow({ tagname });
+
+        return {
+            ok: true,
+            result: new PublicResumeRo(resumeModel),
+        }
+    }
 }

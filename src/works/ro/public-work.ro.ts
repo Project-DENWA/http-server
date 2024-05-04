@@ -1,27 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CategoryRo } from 'src/categories/ro/category.ro';
+import { ImageModel } from 'src/models/images.model';
 import { WorkModel } from 'src/models/works.model';
 import { PublicUser } from 'src/users/ro/public-user.ro';
-
-class MetaRo {
-  @ApiProperty({
-    example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
-    description: 'Unique meta ID',
-  })
-  readonly id: string;
-
-  @ApiProperty({
-    example: 'vitalik',
-    description: 'Name',
-  })
-  readonly name: string;
-
-  @ApiProperty({
-    example: 'A brief description of the object.',
-    description: 'Description',
-  })
-  readonly description: string | null;
-}
 
 export class PublicWorkRo {
   @ApiProperty({
@@ -47,9 +28,6 @@ export class PublicWorkRo {
       description: 'Work creation date',
   })
   readonly createdAt: string;
-
-  @ApiProperty({ type: MetaRo, description: 'Work meta' })
-  readonly meta: MetaRo;
 
   @ApiProperty({ description: 'Work user' })
   readonly user: PublicUser;
@@ -81,6 +59,18 @@ export class PublicWorkRo {
   })
   readonly categories: CategoryRo[];
 
+  @ApiProperty({
+    type: [ImageModel],
+    description: 'List of work categories',
+  })
+  readonly images: ImageModel[];
+
+  @ApiProperty({
+    type: Number,
+    description: 'Number of feedbacks'
+  })
+  readonly feedbacksAmount: number;
+
   constructor(work: WorkModel) {
     this.id = work.id;
     this.name = work.name;
@@ -99,5 +89,7 @@ export class PublicWorkRo {
       avatar: work.user.avatar,
     };
     this.categories = work.workCategories?.map(category => new CategoryRo(category.category)) || [];
+    this.images = work.images;
+    this.feedbacksAmount =  work.feedbacks ? work.feedbacks.length : 0;
   }
 }
