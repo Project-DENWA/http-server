@@ -3,8 +3,10 @@ import { CategoryRo } from 'src/categories/ro/category.ro';
 import { ImageModel } from 'src/models/images.model';
 import { WorkModel } from 'src/models/works.model';
 import { PublicUser } from 'src/users/ro/public-user.ro';
+import { WorkStatus } from '../enums/work-status.enum';
+import ResponseRo from 'src/common/ro/Response.ro';
 
-export class PublicWorkRo {
+export class PublicWork {
   @ApiProperty({
     example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
     description: 'Unique work ID',
@@ -48,10 +50,11 @@ export class PublicWorkRo {
   views: number;
 
   @ApiProperty({
-    example: 'closed',
+    type: WorkStatus,
+    example: WorkStatus.OPEN,
     description: 'Status of the work',
   })
-  public status: string;
+  public status: WorkStatus;
 
   @ApiProperty({
     type: [CategoryRo],
@@ -92,4 +95,20 @@ export class PublicWorkRo {
     this.images = work.images;
     this.feedbacksAmount =  work.feedbacks ? work.feedbacks.length : 0;
   }
+}
+
+export class PublicWorkRo extends ResponseRo {
+    @ApiProperty({
+      type: () => PublicWork,
+      nullable: false,
+    })
+    readonly result: PublicWork;
+}
+
+export class PublicWorksRo extends ResponseRo {
+  @ApiProperty({
+    type: () => [PublicWork],
+    nullable: false,
+  })
+  readonly result: PublicWork[];
 }

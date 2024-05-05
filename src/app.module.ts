@@ -17,6 +17,7 @@ import { ViewsModule } from './views/views.module';
 import { ResumesModule } from './resumes/resumes.module';
 import { FeedbacksModule } from './feedbacks/feedbacks.module';
 import { LanguagesModule } from './languages/languages.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   controllers: [],
@@ -41,6 +42,7 @@ import { LanguagesModule } from './languages/languages.module';
     ResumesModule,
     FeedbacksModule,
     LanguagesModule,
+    CommentsModule,
   ],
 })
 export class AppModule {}

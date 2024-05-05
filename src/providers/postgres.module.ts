@@ -21,6 +21,7 @@ import { ResumeCategoryModel } from 'src/models/resume-categories.model';
 import { FeedbackModel } from 'src/models/feedbacks.model';
 import { LanguageModel } from 'src/models/languages.model';
 import { ResumeLanguageModel } from 'src/models/resume-languages.model';
+import { CommentModel } from 'src/models/comments.model';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { ResumeLanguageModel } from 'src/models/resume-languages.model';
             FeedbackModel,
             LanguageModel,
             ResumeLanguageModel,
+            CommentModel,
           ],
           autoLoadEntities: true,
           synchronize: true,

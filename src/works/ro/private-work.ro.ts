@@ -1,11 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { CategoryRo } from "src/categories/ro/category.ro";
+import { CommentModel } from "src/models/comments.model";
 import { FeedbackModel } from "src/models/feedbacks.model";
 import { ImageModel } from "src/models/images.model";
 import { WorkModel } from "src/models/works.model";
 import { PublicUser } from "src/users/ro/public-user.ro";
+import { WorkStatus } from "../enums/work-status.enum";
+import ResponseRo from "src/common/ro/Response.ro";
 
-export class PrivateWorkRo {
+export class PrivateWork {
     @ApiProperty({
       example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
       description: 'Unique work ID',
@@ -49,10 +52,11 @@ export class PrivateWorkRo {
     views: number;
   
     @ApiProperty({
-      example: 'closed',
-      description: 'Status of the work',
+        type: WorkStatus,
+        example: WorkStatus.OPEN,
+        description: 'Status of the work',
     })
-    public status: string;
+    public status: WorkStatus;
   
     @ApiProperty({
       type: [CategoryRo],
@@ -71,6 +75,12 @@ export class PrivateWorkRo {
         description: 'List of feedbacks',
     })
     feedbacks: FeedbackModel[];
+
+    @ApiProperty({
+        type: CommentModel,
+        description: 'A comment on the work done',
+    })
+    public comment: CommentModel;
   
     constructor(work: WorkModel) {
       this.id = work.id;
@@ -92,5 +102,14 @@ export class PrivateWorkRo {
       this.categories = work.workCategories?.map(category => new CategoryRo(category.category)) || [];
       this.images = work.images;
       this.feedbacks = work.feedbacks;
+      this.comment = work.comment;
     }
   }
+
+  export class PrivateWorkRo extends ResponseRo {
+    @ApiProperty({
+      type: () => PrivateWork,
+      nullable: false,
+    })
+    readonly result: PrivateWork;
+}

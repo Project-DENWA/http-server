@@ -1,10 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
 import { UserModel } from "./user.model";
 import { WorkCategoryModel } from "./work-categories.model";
 import { WorkStatus } from "src/works/enums/work-status.enum";
 import { ImageModel } from "./images.model";
 import { FeedbackModel } from "./feedbacks.model";
+import { ResumeModel } from "./resumes.model";
+import { CommentModel } from "./comments.model";
 
 @Entity({ name: 'works' })
 export class WorkModel extends BaseEntity {
@@ -71,4 +73,12 @@ export class WorkModel extends BaseEntity {
 
     @OneToMany(() => ImageModel, (image) => image.work)
     images: ImageModel[];
+
+    @ManyToOne(() => ResumeModel, resume => resume.works)
+    @JoinColumn()
+    public resume: ResumeModel;
+
+    @OneToOne(() => CommentModel, comment => comment.work)
+    @JoinColumn()
+    public comment: CommentModel;
 }

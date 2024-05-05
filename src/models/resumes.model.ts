@@ -6,6 +6,8 @@ import { ResumeCategoryModel } from "./resume-categories.model";
 import { ResumeStatus } from "src/resumes/enums/resume-status.enum";
 import { FeedbackModel } from "./feedbacks.model";
 import { ResumeLanguageModel } from "./resume-languages.model";
+import { WorkModel } from "./works.model";
+import { CommentModel } from "./comments.model";
 
 @Entity({ name: 'resumes' })
 export class ResumeModel extends BaseEntity {
@@ -81,6 +83,12 @@ export class ResumeModel extends BaseEntity {
 
   @OneToMany(() => FeedbackModel, (feedback) => feedback.work)
   feedback: FeedbackModel[];
+
+  @OneToMany(() => WorkModel, work => work.resume)
+  public works: WorkModel[];
+
+  @OneToMany(() => CommentModel, comment => comment.resume)
+  public comments: CommentModel[];
 
 //   @OneToMany(() => ComplaintModel, (complaint) => complaint.user)
 //   @JoinColumn()

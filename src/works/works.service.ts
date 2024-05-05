@@ -3,8 +3,8 @@ import { CreateWorkDto } from './dto/create-work.dto';
 import { UsersService } from 'src/users/users.service';
 import { WorkModel } from 'src/models/works.model';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { PublicWorkRo } from './ro/public-work.ro';
+import { DataSource, EntityManager, Repository } from 'typeorm';
+import { PublicWork, PublicWorkRo } from './ro/public-work.ro';
 import { CategoriesService } from 'src/categories/categories.service';
 import { WorkCategoryModel } from 'src/models/work-categories.model';
 import { FeedDto } from 'src/common/dto/feed.dto';
@@ -12,6 +12,10 @@ import { GetWorkDto } from './dto/get-work.dto';
 import { ViewsService } from 'src/views/views.service';
 import { WorkStatus } from './enums/work-status.enum';
 import { ImageModel } from 'src/models/images.model';
+import { ResumesService } from 'src/resumes/resumes.service';
+import { WorkInProcessDto } from './dto/work-in-process.dto';
+import { FeedbackStatus } from 'src/feedbacks/enums/feedback-status.enum';
+import { FeedbackModel } from 'src/models/feedbacks.model';
 
 @Injectable()
 export class WorksService {
@@ -22,6 +26,9 @@ export class WorksService {
         private readonly categoriesService: CategoriesService,
         private viewsService: ViewsService,
         private readonly dataSource: DataSource,
+        private resumesService: ResumesService,
+        @InjectRepository(FeedbackModel)
+        private feedbackRepository: Repository<FeedbackModel>,
     ) {}
 
     public async create(dto: CreateWorkDto, userId: string, images: Array<Express.Multer.File>): Promise<WorkModel> {
@@ -63,7 +70,7 @@ export class WorksService {
         })
       }
 
-    public async getAll(): Promise<PublicWorkRo[]> {
+    public async getAll(): Promise<PublicWork[]> {
         const works = await this.workRepository.find({
             relations: {
                 user: true,
@@ -76,7 +83,7 @@ export class WorksService {
         });
 
 
-        return works.map((work) => new PublicWorkRo(work));
+        return works.map((work) => new PublicWork(work));
     }
 
     public async getWork({
@@ -92,6 +99,8 @@ export class WorksService {
                 workCategories: true,
                 images: true,
                 feedbacks: true,
+                comment: true,
+                resume: true,
             },
             where: [
                 { id },
@@ -128,7 +137,7 @@ export class WorksService {
         await this.workRepository.increment({ id: workModel.id }, 'views', 1);
       }
 
-    public async getFeed(dto: FeedDto, userId: string) {
+    public async getFeed(dto: FeedDto, userId: string): Promise<WorkModel[]> {
         const viewedIds = await this.viewsService.getViewedIds(
             userId,
             'work',
@@ -139,8 +148,8 @@ export class WorksService {
             .leftJoinAndSelect('work.images', 'images') 
             .leftJoinAndSelect('workCategory.category', 'category')
             .leftJoinAndSelect('work.feedbacks', 'feedbacks');
-        query.where('(work.status != :status OR work.status IS NULL)', {
-            status: WorkStatus.CLOSED,
+        query.where('(work.status = :status)', {
+            status: WorkStatus.OPEN,
         });
         if (viewedIds.length > 0) {
             query.orderBy(
@@ -175,5 +184,58 @@ export class WorksService {
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
           }
+    }
+
+    public async workInProcess(dto: WorkInProcessDto, userId: string): Promise<WorkModel> {
+        return await this.dataSource.transaction(async (manager) => {
+            const workModel = await this.getWorkOrThrow({ id: dto.workId });
+            if(workModel.user.id != userId)
+                throw new HttpException('You are not the owner of this work', HttpStatus.FORBIDDEN);
+            if(workModel.status != WorkStatus.OPEN)
+                throw new HttpException('You have already found a contractor', HttpStatus.CONFLICT);
+
+            const feedbackModel = workModel.feedbacks.find(feedback => feedback.resume.id === dto.resumeId);
+            if (!feedbackModel)
+                throw new HttpException('No feedback with such resume ID', HttpStatus.NOT_FOUND);
+
+            const resumeModel = await this.resumesService.getResumeOrThrow({ id: dto.resumeId });
+
+            workModel.status = WorkStatus.IN_PROCESS;
+            workModel.resume = resumeModel;
+
+            await this.changeStatus(WorkStatus.IN_PROCESS, workModel, manager);
+            await this.changeStatusFeedback(FeedbackStatus.CONFIRMED, feedbackModel, manager);
+            await manager.update(WorkModel, { id: workModel.id }, { resume: resumeModel });
+
+            return workModel;
+        });
+    }
+
+    public async workClosed({ workId }: GetWorkDto, userId: string): Promise<WorkModel> {
+        return await this.dataSource.transaction(async (manager) => {
+            const workModel = await this.getWorkOrThrow({ id: workId });
+            if(workModel.user.id != userId)
+                throw new HttpException('You are not the owner of this work', HttpStatus.FORBIDDEN);
+            if (workModel.status != WorkStatus.IN_PROCESS)
+                throw new HttpException('You can no longer change the status of a work', HttpStatus.CONFLICT);
+
+            await this.changeStatus(WorkStatus.CLOSED, workModel, manager)
+            return workModel;
+        });
+    }
+
+    private async changeStatus(status: WorkStatus, workModel: WorkModel, manager: EntityManager,): Promise<void> {
+
+        if (workModel.status == WorkStatus.CANCELED || workModel.status == WorkStatus.CLOSED)
+            throw new HttpException('The status of this work can no longer be changed', HttpStatus.FORBIDDEN);
+        
+        await manager.update(WorkModel, { id: workModel.id }, { status })
+    }
+
+    public async changeStatusFeedback(status: FeedbackStatus, feedbackModel: FeedbackModel, manager: EntityManager): Promise<void> {
+        if (feedbackModel.status == FeedbackStatus.CANSELED)
+            throw new HttpException('The status of this feedback can no longer be changed', HttpStatus.FORBIDDEN);
+        
+        await manager.update(FeedbackModel, { id: feedbackModel.id }, { status })
     }
 }

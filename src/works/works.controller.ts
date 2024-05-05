@@ -1,17 +1,17 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiConsumes, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorksService } from './works.service';
 import { CreateWorkDto } from './dto/create-work.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import ResponseRo from 'src/common/ro/Response.ro';
 import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
-import { PublicWorkRo } from './ro/public-work.ro';
+import { PublicWork, PublicWorkRo, PublicWorksRo } from './ro/public-work.ro';
 import { FeedDto } from 'src/common/dto/feed.dto';
 import { GetWorkDto } from './dto/get-work.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerImageConfig } from 'src/config/multer-image.config';
-import { EmailVerifiedGuard } from 'src/users/guards/email-verified.guard';
-import { PrivateWorkRo } from './ro/private-work.ro';
+import { PrivateWork, PrivateWorkRo } from './ro/private-work.ro';
+import { WorkInProcessDto } from './dto/work-in-process.dto';
 
 @ApiTags('Works')
 @Controller('works')
@@ -31,8 +31,8 @@ export class WorksController {
         @UploadedFiles() images: Array<Express.Multer.File>,
         @Body() dto: CreateWorkDto,
         @Req() req: AuthenticatedRequest,
-    ): Promise<ResponseRo> {
-        const workModel = new PublicWorkRo(await this.worksService.create(dto, req.user.id, images));
+    ): Promise<PublicWorkRo> {
+        const workModel = new PublicWork(await this.worksService.create(dto, req.user.id, images));
 
         return {
             ok: true,
@@ -48,13 +48,13 @@ export class WorksController {
     async getOneWork(
         @Param('id') id: string,
         @Req() req: AuthenticatedRequest,
-    ): Promise<ResponseRo> {
+    ): Promise<PrivateWorkRo> {
         const workModel =  await this.worksService.getWorkOrThrow({ id })
         let result;
         if (workModel.user.id == req.user.id) {
-            result = new PrivateWorkRo(workModel);
+            result = new PrivateWork(workModel);
         } else {
-            result = new PublicWorkRo(workModel);
+            result = new PublicWork(workModel);
         }
 
         return {
@@ -63,7 +63,7 @@ export class WorksController {
         }
     }
 
-    @ApiOperation({ summary: 'Get all works' })
+    @ApiOperation({ summary: 'Get all works(DEV ROUTE)' })
     @Get('/')
     async getAllWorks(
 
@@ -97,8 +97,46 @@ export class WorksController {
     async getWorksFeed(
         @Query() dto: FeedDto,
         @Req() req: AuthenticatedRequest,
-    ) {
+    ): Promise<PublicWorksRo> {
         const workModels = await this.worksService.getFeed(dto, req.user.id);
-        return workModels.map((work) => new PublicWorkRo(work));
+        return {
+            ok: true,
+            result: workModels.map((work) => new PublicWork(work)),
+        };
     }
+
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('access-token')
+    @Patch('/in-process')
+    @ApiOperation({ summary: 'Change work status to in process' })
+    async changeToInProcess(
+        @Body() dto: WorkInProcessDto,
+        @Req() req: AuthenticatedRequest,
+    ): Promise<PrivateWorkRo> {
+        const workModel = await this.worksService.workInProcess(dto, req.user.id);
+
+        return {
+            ok: true,
+            message: 'You have successfully launched the project',
+            result: new PrivateWork(workModel),
+        }
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('access-token')
+    @Patch('/closed')
+    @ApiOperation({ summary: 'Change work status to closed' })
+    async changeToClosed(
+        @Body() dto: GetWorkDto,
+        @Req() req: AuthenticatedRequest,
+    ): Promise<PrivateWorkRo> {
+        const workModel = await this.worksService.workClosed(dto, req.user.id);
+
+        return {
+            ok: true,
+            message: 'You have successfully closed the work',
+            result: new PrivateWork(workModel),
+        }
+    }
+
 }

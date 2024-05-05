@@ -5,17 +5,16 @@ import { WorksService } from 'src/works/works.service';
 import { FeedbackModel } from 'src/models/feedbacks.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsersService } from 'src/users/users.service';
 import { PublicFeedbackRo } from './ro/public-feedback.ro';
+import { FeedbackStatus } from './enums/feedback-status.enum';
 
 @Injectable()
 export class FeedbacksService {
     constructor(
-        private usersService: UsersService,
         private resumesService: ResumesService,
-        private worksService: WorksService,
         @InjectRepository(FeedbackModel)
         private feedbackRepository: Repository<FeedbackModel>,
+        private worksService: WorksService,
     ) {}
 
     public async create(dto: CreateFeedbackDto, userId: string): Promise<void> {
