@@ -29,6 +29,7 @@ export class FeedbacksService {
         const feedbackModel = new FeedbackModel();
         feedbackModel.resume = resumeModel;
         feedbackModel.work = workModel;
+        if(dto.description) feedbackModel.description = dto.description;
         await this.feedbackRepository.save(feedbackModel);
     }
 
