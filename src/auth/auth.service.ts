@@ -20,13 +20,16 @@ import { LoginRo } from './ro/login.ro';
 import { TokensRo } from './ro/tokens.ro';
 import { PrivateUser } from 'src/users/ro/private-user.ro';
 import { Response, Request } from 'express';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { TokensService } from 'src/tokens/tokens.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UsersService,
+    private usersService: UsersService,
     private jwtService: JwtService,
     private sessionService: SessionsService,
+    private tokensService: TokensService,
   ) {}
 
   public async login(
@@ -37,6 +40,20 @@ export class AuthService {
   ): Promise<LoginRo> {
     const userModel = await this.validateUser(dto);
     const tokens: TokensRo = await this.generateTokens(userModel, req, ip);
+
+    if (userModel.tfaSecret) {
+      if (!dto.tfaCode)
+        throw new HttpException('2FA code is required', HttpStatus.FORBIDDEN);
+
+      const isTfaCodeValid = speakeasy.totp.verify({
+        secret: userModel.tfaSecret,
+        encoding: 'base32',
+        token: dto.tfaCode,
+      });
+
+      if (!isTfaCodeValid)
+        throw new HttpException('Invalid 2FA code', HttpStatus.FORBIDDEN);
+    }
 
     res.cookie('x-refresh-token', tokens.refreshToken, {
       httpOnly: true,
@@ -55,7 +72,7 @@ export class AuthService {
   }
 
   private async validateUser(dto: LoginUserDto): Promise<UserModel> {
-    const userModel = await this.userService.getUserOrThrow({
+    const userModel = await this.usersService.getUserOrThrow({
       email: dto.account,
       name: dto.account,
     });
@@ -77,7 +94,7 @@ export class AuthService {
     req: Request,
     ip: string,
   ): Promise<LoginRo> {
-    const userModel = await this.userService.getUser({
+    const userModel = await this.usersService.getUser({
       email: dto.email,
       name: dto.username,
     });
@@ -89,7 +106,7 @@ export class AuthService {
 
     const hashPassword = await bcrypt.hash(dto.password, 5);
     const activationToken = v4();
-    const user = await this.userService.create(
+    const user = await this.usersService.create(
       {
         ...dto,
         password: hashPassword,
@@ -97,7 +114,7 @@ export class AuthService {
       activationToken,
     );
 
-    await this.userService.sendConfirmationEmail(user, activationToken);
+    await this.usersService.sendConfirmationEmail(user, activationToken);
     const tokens: TokensRo = await this.generateTokens(user, req, ip);
 
     return {
@@ -128,7 +145,7 @@ export class AuthService {
     if (!session || session.user.id !== decoded.userId)
       throw new UnauthorizedException('Invalid refresh token');
 
-    const userModel = await this.userService.getUserOrThrow({
+    const userModel = await this.usersService.getUserOrThrow({
       id: session.user.id,
     });
 
@@ -182,6 +199,30 @@ export class AuthService {
       password,
       hashPassword,
     };
+  }
+
+  public async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
+    const user = await this.usersService.getUserOrThrow({
+      email: dto.email,
+      name: dto.username,
+    });
+
+    if (user.tfaSecret) {
+      if (!dto.tfaCode) throw new ForbiddenException('2FA code is required.');
+      if (
+        !speakeasy.totp.verify({
+          secret: user.tfaSecret,
+          encoding: 'base32',
+          token: dto.tfaCode,
+        })
+      )
+        throw new ForbiddenException('Invalid 2FA code.');
+    }
+
+    await this.usersService.sendForgotPasswordEmail(
+      user,
+      await this.tokensService.createToken(user.id),
+    );
   }
 
   async handleForgotPassword(userModel: UserModel): Promise<string> {

@@ -49,6 +49,13 @@ export class UserModel extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   verified: boolean;
 
+  @ApiProperty({
+    example: '2FA_Secret',
+    description: 'Secret for Two-Factor Authentication',
+  })
+  @Column({ type: 'varchar', nullable: true, default: null })
+  public tfaSecret: string | null;
+
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP(6)',

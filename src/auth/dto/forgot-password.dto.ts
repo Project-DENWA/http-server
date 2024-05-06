@@ -25,4 +25,9 @@ export class ForgotPasswordDto {
   @IsNotEmpty()
   @ValidateIf((o) => !o.email)
   readonly username: string;
+
+  @ApiProperty({ example: '123456', description: '2FA code.' })
+  @IsOptional()
+  @IsString()
+  readonly tfaCode?: string;
 }

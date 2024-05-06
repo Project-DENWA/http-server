@@ -43,6 +43,8 @@ import { PrivateUser, PrivateUserRo } from './ro/private-user.ro';
 import { UpdateCoverRo } from './ro/update-cover.ro';
 import { promisify } from 'util';
 import * as fs from 'fs';
+import { TfaSecretRo } from './ro/tfa-secret.ro';
+import { SwitchTfaDto } from './dto/switch-tfa.dto';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -340,6 +342,46 @@ export class UsersController {
     await this.usersService.deleteUser(req.user.id);
     return {
       ok: true,
+    };
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create 2FA' })
+  @ApiOkResponse({
+    description: 'Successful 2FA created',
+    type: TfaSecretRo,
+  })
+  @Get('/create-tfa')
+  async createTfa(@Req() req: AuthenticatedRequest): Promise<TfaSecretRo> {
+    const userModel = await this.usersService.getUserOrThrow({
+      id: req.user.id,
+    });
+    const tfaSecret = await this.usersService.generate2FASecret(userModel);
+
+    return {
+      ok: true,
+      result: tfaSecret,
+    };
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @ApiOperation({ summary: 'Switch 2FA' })
+  @ApiOkResponse({
+    description: 'Successful 2FA send',
+    type: ResponseRo,
+  })
+  @Patch('/switch-tfa')
+  async switchTfa(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto?: SwitchTfaDto,
+  ): Promise<ResponseRo> {
+    await this.usersService.switchTfa(req.user.id, dto);
+
+    return {
+      ok: true,
+      message: 'Tfa successfully switched',
     };
   }
 }

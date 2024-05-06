@@ -1,12 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { getAddress } from 'viem';
 import { UserModel } from 'src/models/user.model';
 import ResponseRo from 'src/common/ro/Response.ro';
 import { Type } from 'class-transformer';
 import { ResumeModel } from 'src/models/resumes.model';
-import { SocialModel } from 'src/models/social.model';
-import { ResumeCategoryModel } from 'src/models/resume-categories.model';
-import { PublicResumeRo } from 'src/resumes/ro/public-resume.ro';
 
 class EmailRo {
   @ApiProperty({
@@ -111,6 +107,11 @@ export class PrivateUser {
   public bio: string;
 
   @ApiProperty({
+    description: 'Is two-factor authentication connected to the account.',
+  })
+  readonly tfa: boolean;
+
+  @ApiProperty({
     example: '2023-12-11 23:08:02.949+07',
     description: 'User creation date',
   })
@@ -142,6 +143,7 @@ export class PrivateUser {
     this.meta = userModel.meta;
     this.email = userModel.email;
     this.avatar = userModel.avatar;
+    this.tfa = !!userModel.tfaSecret;
     this.notification = userModel.notification;
     if (userModel.resume)
       this.resume = new ResumeRo(userModel.resume);

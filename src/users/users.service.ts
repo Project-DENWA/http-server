@@ -25,6 +25,10 @@ import { ConfigService } from '@nestjs/config';
 import ResponseRo from 'src/common/ro/Response.ro';
 import { UpdateDescriptionDto } from './dto/update-description.dto';
 import { PublicUser } from './ro/public-user.ro';
+import { TfaSecret } from './ro/tfa-secret.ro';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
+import { SwitchTfaDto } from './dto/switch-tfa.dto';
 
 @Injectable()
 export class UsersService {
@@ -258,6 +262,19 @@ export class UsersService {
     );
   }
 
+  private async sendTfaEmail(userModel: UserModel): Promise<ResponseRo> {
+    const context = {
+      name: userModel.meta.name,
+    };
+
+    return this.sendEmail(
+      userModel,
+      'TFA has been switched',
+      'tfa-switched.ejs',
+      context,
+    );
+  }
+
   public async activateAccount(emailToken: string): Promise<void> {
     const userModel = await this.getUserOrThrow({ emailToken });
 
@@ -390,5 +407,48 @@ export class UsersService {
 
   async decrementLikeCount(id: string): Promise<void> {
     await this.usersRepository.decrement({ id }, 'likes', 1);
+  }
+
+  public async generate2FASecret(userModel: UserModel): Promise<TfaSecret> {
+    const secret = speakeasy.generateSecret({
+      name: `Denwa:${userModel.meta.name}`,
+    });
+    if (!secret.otpauth_url)
+      throw new HttpException(
+        'otpauth_url is undefined',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+
+    const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+    return { secret: secret.base32, qrCodeUrl };
+  }
+
+  async switchTfa(id: string, dto?: SwitchTfaDto): Promise<void> {
+    const userModel = await this.getUserOrThrow({ id });
+
+    if (userModel.tfaSecret) {
+      await this.usersRepository.update(
+        { id: userModel.id },
+        { tfaSecret: null },
+      );
+      return undefined;
+    } else {
+      if (!dto?.secret) {
+        throw new HttpException('Secret not found', HttpStatus.BAD_REQUEST);
+      }
+      const isTfaCodeValid = speakeasy.totp.verify({
+        secret: dto.secret,
+        encoding: 'base32',
+        token: dto.tfaCode,
+      });
+      if (!isTfaCodeValid)
+        throw new HttpException('Invalid 2FA code', HttpStatus.FORBIDDEN);
+
+      await this.usersRepository.update(
+        { id: userModel.id },
+        { tfaSecret: dto.secret },
+      );
+      await this.sendTfaEmail(userModel);
+    }
   }
 }

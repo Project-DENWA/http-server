@@ -181,18 +181,12 @@ export class AuthController {
   })
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<ResponseRo> {
-    const userModel = await this.userService.getUserOrThrow({
-      email: dto.email,
-      name: dto.username,
-    });
-
-    const token = await this.tokensService.createToken(userModel.id);
-    await this.userService.sendForgotPasswordEmail(userModel, token);
+    await this.authService.forgotPassword(dto);
 
     return {
       ok: true,
-      message: 'The letter have been successfully sended.',
-    };
+      message: 'The email was successfully sent.',
+    }
   }
 
   @ApiOperation({ summary: 'Restore password using token' })
