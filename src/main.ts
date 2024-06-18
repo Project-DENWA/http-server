@@ -20,7 +20,7 @@ async function start() {
 
   const config = new DocumentBuilder()
     .setTitle('Denwa HTTP routes')
-    .setDescription('Description')
+    .setDescription('This server process all POST and GET requests of the platform.')
     .setVersion('0.1')
     .addBearerAuth(
       {

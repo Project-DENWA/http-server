@@ -5,7 +5,7 @@ import { EmailVerifiedGuard } from 'src/users/guards/email-verified.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
-import { PublicResumeRo, ResumeRo } from './ro/public-resume.ro';
+import { PublicResumeRo, ResumeRo, ResumesRo } from './ro/public-resume.ro';
 
 @ApiTags('Resumes')
 @Controller('resumes')
@@ -32,7 +32,7 @@ export class ResumesController {
     }
 
     @ApiOperation({ summary: 'Get resume' })
-    @Get('/:userid')
+    @Get('/by-userid/:userid')
     async getOneResume(
         @Param('userid') userId: string,
     ): Promise<ResumeRo> {
@@ -54,6 +54,17 @@ export class ResumesController {
         return {
             ok: true,
             result: new PublicResumeRo(resumeModel),
+        }
+    }
+
+    @ApiOperation({ summary: 'Get all resumes' })
+    @Get('/all')
+    async getAll(): Promise<ResumesRo> {
+        const resumesModel =  await this.resumesService.getAll();
+
+        return {
+            ok: true,
+            result: resumesModel,
         }
     }
 }

@@ -9,6 +9,7 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { ResumeCategoryModel } from 'src/models/resume-categories.model';
 import { LanguagesService } from 'src/languages/languages.service';
 import { ResumeLanguageModel } from 'src/models/resume-languages.model';
+import { PublicResumeRo } from './ro/public-resume.ro';
 
 @Injectable()
 export class ResumesService {
@@ -72,6 +73,21 @@ export class ResumesService {
     
             return resumeModel;
         })
+    }
+
+    public async getAll() {
+        const users = await this.resumesRepository.find({
+            relations: {
+                social: true,
+                user: {
+                    avatar: true,
+                },
+                resumeCategories: true,
+                resumeLanguages: true,
+            },
+          });
+      
+          return users.map((user) => new PublicResumeRo(user));
     }
 
     public async getResume({

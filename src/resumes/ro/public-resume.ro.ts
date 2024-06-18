@@ -112,8 +112,13 @@ export class PublicResumeRo {
 
 
 export class ResumeRo extends ResponseRo {
-    @ApiProperty({ nullable: false, type: () => PublicResumeRo })
-    @Type(() => PublicResumeRo)
-    readonly result: PublicResumeRo;
-  }
+  @ApiProperty({ nullable: false, type: () => PublicResumeRo })
+  @Type(() => PublicResumeRo)
+  readonly result: PublicResumeRo;
+}
   
+export class ResumesRo extends ResponseRo {
+  @ApiProperty({ nullable: false, type: () => [PublicResumeRo] })
+  @Type(() => PublicResumeRo)
+  readonly result: PublicResumeRo[];
+}
