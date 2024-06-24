@@ -1,14 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, Min } from 'class-validator';
+import { SortWorksType } from 'src/feed/types/sort-works.type';
 
 export class FeedDto {
   @ApiProperty({
-    example: 'relevant',
+    example: 'RECENTLY',
     description: 'Sorting order of the feed',
-    required: false,
+    type: SortWorksType
   })
-  readonly sort: string | null;
+  @IsEnum(SortWorksType)
+  readonly sort: SortWorksType;
 
   @ApiProperty({
     example: 1,

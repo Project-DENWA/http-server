@@ -4,10 +4,9 @@ import { UsersService } from 'src/users/users.service';
 import { WorkModel } from 'src/models/works.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { PublicWork, PublicWorkRo } from './ro/public-work.ro';
+import { PublicWork } from './ro/public-work.ro';
 import { CategoriesService } from 'src/categories/categories.service';
 import { WorkCategoryModel } from 'src/models/work-categories.model';
-import { FeedDto } from 'src/common/dto/feed.dto';
 import { GetWorkDto } from './dto/get-work.dto';
 import { ViewsService } from 'src/views/views.service';
 import { WorkStatus } from './enums/work-status.enum';
@@ -136,55 +135,6 @@ export class WorksService {
         await this.viewsService.addView(userId, 'work', workModel.id);
         await this.workRepository.increment({ id: workModel.id }, 'views', 1);
       }
-
-    public async getFeed(dto: FeedDto, userId: string): Promise<WorkModel[]> {
-        const viewedIds = await this.viewsService.getViewedIds(
-            userId,
-            'work',
-        );
-        const query = this.workRepository.createQueryBuilder('work')
-            .leftJoinAndSelect('work.user', 'user')
-            .leftJoinAndSelect('work.workCategories', 'workCategory')
-            .leftJoinAndSelect('work.images', 'images') 
-            .leftJoinAndSelect('workCategory.category', 'category')
-            .leftJoinAndSelect('work.feedbacks', 'feedbacks');
-        query.where('(work.status = :status)', {
-            status: WorkStatus.OPEN,
-        });
-        if (viewedIds.length > 0) {
-            query.orderBy(
-              `CASE WHEN work.id IN (:...viewedIds) THEN 1 ELSE 0 END`,
-              'ASC',
-            );
-        }
-
-        if (dto.sort === 'relevance') {
-            query.addOrderBy('work.views', 'DESC');
-        } else if (dto.sort === 'own') {
-            query.where('work.user.id = :userId', {
-                userId
-            });
-            query.addOrderBy('work.created_at', 'DESC');
-        } else {
-            query.addOrderBy('work.created_at', 'DESC');
-        }
-
-        if (viewedIds.length > 0) {
-            query.setParameter('viewedIds', viewedIds);
-        }
-
-        const offset = (dto.page - 1) * dto.pageSize;
-        query.offset(offset);
-        query.limit(dto.pageSize);
-        try {
-            return await query.getMany();
-          } catch (error) {
-            throw new HttpException(
-                'Error when getting a collection feed',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }
-    }
 
     public async workInProcess(dto: WorkInProcessDto, userId: string): Promise<WorkModel> {
         return await this.dataSource.transaction(async (manager) => {

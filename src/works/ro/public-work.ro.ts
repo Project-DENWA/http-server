@@ -31,7 +31,7 @@ export class PublicWork {
   })
   readonly createdAt: string;
 
-  @ApiProperty({ description: 'Work user' })
+  @ApiProperty({ description: 'Work user', type: () => PublicUser })
   readonly user: PublicUser;
 
   @ApiProperty({
@@ -50,20 +50,20 @@ export class PublicWork {
   views: number;
 
   @ApiProperty({
-    type: WorkStatus,
+    type: () => WorkStatus,
     example: WorkStatus.OPEN,
     description: 'Status of the work',
   })
   public status: WorkStatus;
 
   @ApiProperty({
-    type: [CategoryRo],
+    type: () => [CategoryRo],
     description: 'List of work categories',
   })
   readonly categories: CategoryRo[];
 
   @ApiProperty({
-    type: [ImageModel],
+    type: () => [ImageModel],
     description: 'List of work categories',
   })
   readonly images: ImageModel[];
@@ -103,12 +103,4 @@ export class PublicWorkRo extends ResponseRo {
       nullable: false,
     })
     readonly result: PublicWork;
-}
-
-export class PublicWorksRo extends ResponseRo {
-  @ApiProperty({
-    type: () => [PublicWork],
-    nullable: false,
-  })
-  readonly result: PublicWork[];
 }

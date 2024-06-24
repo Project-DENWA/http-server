@@ -5,13 +5,14 @@ import { CreateWorkDto } from './dto/create-work.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import ResponseRo from 'src/common/ro/Response.ro';
 import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
-import { PublicWork, PublicWorkRo, PublicWorksRo } from './ro/public-work.ro';
+import { PublicWork, PublicWorkRo } from './ro/public-work.ro';
 import { FeedDto } from 'src/common/dto/feed.dto';
 import { GetWorkDto } from './dto/get-work.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerImageConfig } from 'src/config/multer-image.config';
 import { PrivateWork, PrivateWorkRo } from './ro/private-work.ro';
 import { WorkInProcessDto } from './dto/work-in-process.dto';
+import { EmailVerifiedGuard } from 'src/users/guards/email-verified.guard';
 
 @ApiTags('Works')
 @Controller('works')
@@ -24,7 +25,7 @@ export class WorksController {
     //@ApiConsumes('multipart/form-data')
     @ApiCreatedResponse({ type: CreateWorkDto })
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard/*, EmailVerifiedGuard*/)
+    @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
     @UseInterceptors(FilesInterceptor('images', 4, multerImageConfig))
     @Post('/create')
     async createWork(
@@ -88,21 +89,6 @@ export class WorksController {
       return {
         ok: true,
       };
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth('access-token')
-    @Get('/create/feed')
-    @ApiOperation({ summary: 'Get works feed' })
-    async getWorksFeed(
-        @Query() dto: FeedDto,
-        @Req() req: AuthenticatedRequest,
-    ): Promise<PublicWorksRo> {
-        const workModels = await this.worksService.getFeed(dto, req.user.id);
-        return {
-            ok: true,
-            result: workModels.map((work) => new PublicWork(work)),
-        };
     }
 
     @UseGuards(JwtAuthGuard)

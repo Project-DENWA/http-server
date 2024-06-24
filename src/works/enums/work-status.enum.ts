@@ -3,5 +3,6 @@ export enum WorkStatus {
     CLOSED = 'CLOSED',
     IN_PROCESS = 'IN PROCESS',
     CANCELED = "CANCELED",
+    BANNED = "BANNED",
   }
   
