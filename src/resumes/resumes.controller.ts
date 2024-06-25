@@ -5,7 +5,7 @@ import { EmailVerifiedGuard } from 'src/users/guards/email-verified.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
-import { PublicResumeRo, ResumeRo, ResumesRo } from './ro/public-resume.ro';
+import { PublicResume, PublicResumeRo } from './ro/public-resume.ro';
 
 @ApiTags('Resumes')
 @Controller('resumes')
@@ -17,17 +17,17 @@ export class ResumesController {
     @ApiOperation({ summary: 'Create a resume' })
     @ApiCreatedResponse({ description: 'Successfull create resume' })
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard/*, EmailVerifiedGuard*/)
+    @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
     @Post('/create')
     async create(
         @Body() dto: CreateResumeDto,
         @Req() req: AuthenticatedRequest,
-    ): Promise<ResumeRo> {
+    ): Promise<PublicResumeRo> {
         const resumeModel = await this.resumesService.create(dto, req.user.id);
 
         return {
             ok: true,
-            result: new PublicResumeRo(resumeModel),
+            result: new PublicResume(resumeModel),
         }
     }
 
@@ -35,12 +35,12 @@ export class ResumesController {
     @Get('/by-userid/:userid')
     async getOneResume(
         @Param('userid') userId: string,
-    ): Promise<ResumeRo> {
+    ): Promise<PublicResumeRo> {
         const resumeModel =  await this.resumesService.getResumeOrThrow({ userId });
 
         return {
             ok: true,
-            result: new PublicResumeRo(resumeModel),
+            result: new PublicResume(resumeModel),
         }
     }
 
@@ -48,23 +48,23 @@ export class ResumesController {
     @Get('/by-tag/:tagname')
     async getByTagname(
         @Param('tagname') tagname: string,
-    ): Promise<ResumeRo> {
+    ): Promise<PublicResumeRo> {
         const resumeModel =  await this.resumesService.getResumeOrThrow({ tagname });
 
         return {
             ok: true,
-            result: new PublicResumeRo(resumeModel),
+            result: new PublicResume(resumeModel),
         }
     }
 
-    @ApiOperation({ summary: 'Get all resumes' })
-    @Get('/all')
-    async getAll(): Promise<ResumesRo> {
-        const resumesModel =  await this.resumesService.getAll();
+    // @ApiOperation({ summary: 'Get all resumes' })
+    // @Get('/all')
+    // async getAll(): Promise<ResumesRo> {
+    //     const resumesModel =  await this.resumesService.getAll();
 
-        return {
-            ok: true,
-            result: resumesModel,
-        }
-    }
+    //     return {
+    //         ok: true,
+    //         result: resumesModel,
+    //     }
+    // }
 }

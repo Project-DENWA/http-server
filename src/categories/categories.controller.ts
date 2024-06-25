@@ -1,12 +1,13 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAdminGuard } from 'src/governance/admins/guards/jwt-admin.guard';
 import { RolesGuard } from 'src/governance/admins/guards/role.guard';
 import { Roles } from 'src/governance/admins/decorators/roles.decorator';
 import { Role } from 'src/governance/admins/enums/role.enum';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import ResponseRo from 'src/common/ro/Response.ro';
+import { CategoriesRoModel, CategoryRo } from './ro/category.ro';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -42,11 +43,16 @@ export class CategoriesController {
     }
 
     @ApiOperation({ summary: 'Get all categories' })
-    @Get('/getAll')
-    async getAllCategories(): Promise<ResponseRo> {
+    @ApiResponse({
+        type: CategoriesRoModel,
+    })
+    @Get('/get-all')
+    async getAllCategories(): Promise<CategoriesRoModel> {
+        const result = await this.categoriesService.getAll();
+        const categories: CategoryRo[] = result.map(category => new CategoryRo(category));
         return {
             ok: true,
-            result: await this.categoriesService.getAll(),
+            result: categories,
         }
     }
 }

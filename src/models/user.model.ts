@@ -36,6 +36,13 @@ export class UserModel extends BaseEntity {
   public bio: string;
 
   @ApiProperty({
+    example: 'example@mail.ru',
+    description: 'Email for contact',
+  })
+  @Column({ type: 'varchar', nullable: true })
+  public contactEmail: string | null;
+
+  @ApiProperty({
     example: '$2a$05$LBNalJS.eyXbKgWiZ2uHyl/F16m2L3X',
     description: 'User hashed password',
   })

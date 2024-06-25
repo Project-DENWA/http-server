@@ -5,14 +5,6 @@ import { SortWorksType } from 'src/feed/types/sort-works.type';
 
 export class FeedDto {
   @ApiProperty({
-    example: 'RECENTLY',
-    description: 'Sorting order of the feed',
-    type: SortWorksType
-  })
-  @IsEnum(SortWorksType)
-  readonly sort: SortWorksType;
-
-  @ApiProperty({
     example: 1,
     description: 'Page number of the feed',
   })

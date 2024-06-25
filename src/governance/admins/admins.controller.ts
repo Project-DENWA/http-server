@@ -112,7 +112,7 @@ export class AdminsController {
   }
 
   @ApiBearerAuth('admin-token')
-  @Get('/getAll')
+  @Get('/get-all')
   @UseGuards(JwtAdminGuard, RolesGuard)
   @Roles(Role.SUPER)
   async getAllAdmins(): Promise<ResponseRo> {

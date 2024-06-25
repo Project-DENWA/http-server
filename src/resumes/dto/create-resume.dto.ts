@@ -32,7 +32,7 @@ class SocialDto {
   readonly discord?: string;
 }
 
-class ResumeLanguageDto {
+export class ResumeLanguage {
   @ApiProperty({
     example: 'Russian',
     description: 'Language name',
@@ -46,7 +46,7 @@ class ResumeLanguageDto {
   level: LanguageLevel;
 }
 
-class ResumeCategoriesDto {
+export class ResumeCategories {
   @ApiProperty({
     example: 'Backend',
     description: 'Category name',
@@ -72,19 +72,19 @@ export class CreateResumeDto {
 
     @ApiProperty({
         description: 'Categories of the resume',
-        example: [ResumeCategoriesDto],
+        example: [ResumeCategories],
     })
     @IsArray()
     @ArrayNotEmpty()
-    categories: ResumeCategoriesDto[];
+    categories: ResumeCategories[];
 
     @ApiProperty({
       description: 'Language objects of the resume',
-      example: [ResumeLanguageDto],
+      example: [ResumeLanguage],
     })
     @IsArray()
     @ArrayNotEmpty()
-    languages: ResumeLanguageDto[];
+    languages: ResumeLanguage[];
 
     @ApiProperty({
       example: SocialDto,

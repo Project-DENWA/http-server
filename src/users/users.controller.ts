@@ -35,7 +35,7 @@ import { multerAvatarConfig } from 'src/config/multer-avatar.config';
 import { multerCoverConfig } from 'src/config/multer-cover.config';
 import { UpdateUsernameDto } from './dto/update-username.dto';
 import ResponseRo from 'src/common/ro/Response.ro';
-import { PublicUser } from './ro/public-user.ro';
+import { PublicUser, PublicUserRo } from './ro/public-user.ro';
 import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
 import { UpdateDescriptionDto } from './dto/update-description.dto';
 import { UpdateAvatarRo } from './ro/update-avatar.ro';
@@ -56,14 +56,17 @@ export class UsersController {
   ) {}
 
   @ApiOperation({ summary: 'Get user profile by username.' })
-  @ApiResponse({ status: 200, type: PublicUser })
+  @ApiResponse({ status: 200, type: PublicUserRo })
   @Get('/profile/:username')
   async getProfileByUsername(
     @Param('username') username: string,
-  ): Promise<PublicUser> {
+  ): Promise<PublicUserRo> {
     const user = await this.usersService.getUserOrThrow({ name: username });
 
-    return new PublicUser(user);
+    return {
+      ok: true,
+      result: new PublicUser(user),
+    }
   }
 
   @ApiBearerAuth('access-token')
@@ -83,7 +86,7 @@ export class UsersController {
     };
   }
 
-  @ApiOperation({ summary: 'Get all users.' })
+  @ApiOperation({ summary: 'Get all users.(DEV ROUTE)' })
   @ApiResponse({ status: 200, type: [UserModel] })
   @Get('/')
   getAll() {

@@ -1,4 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import ResponseRo from "src/common/ro/Response.ro";
 import { CategoryModel } from "src/models/categories.model";
 
 export class CategoryRo {
@@ -18,6 +20,16 @@ export class CategoryRo {
       this.id = category.id;
       this.name = category.name;
     }
+  }
+
+  export class CategoriesRoModel extends ResponseRo {
+    @ApiProperty({
+      nullable: false,
+      type: () => CategoryRo,
+      isArray: true,
+    })
+    @Type(() => CategoryRo)
+    readonly result: CategoryRo[];
   }
 
   export class CategoryExpRo {

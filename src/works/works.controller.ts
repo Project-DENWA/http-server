@@ -6,7 +6,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import ResponseRo from 'src/common/ro/Response.ro';
 import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
 import { PublicWork, PublicWorkRo } from './ro/public-work.ro';
-import { FeedDto } from 'src/common/dto/feed.dto';
+import { FeedDto } from 'src/feed/dto/feed.dto';
 import { GetWorkDto } from './dto/get-work.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerImageConfig } from 'src/config/multer-image.config';

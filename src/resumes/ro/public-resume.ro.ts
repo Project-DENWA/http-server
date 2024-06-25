@@ -32,7 +32,7 @@ class SocialRo {
   discord: string | null;
 }
 
-export class PublicResumeRo {
+export class PublicResume {
   @ApiProperty({
     example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
     description: 'Unique resume ID',
@@ -97,7 +97,7 @@ export class PublicResumeRo {
       id: resume.user.id,
       fullname: resume.user.fullname,
       bio: resume.user.bio,
-      email: resume.user.email,
+      verified: resume.user.verified,
       meta: resume.user.meta,
       avatar: resume.user.avatar,
     };
@@ -111,14 +111,8 @@ export class PublicResumeRo {
 }
 
 
-export class ResumeRo extends ResponseRo {
-  @ApiProperty({ nullable: false, type: () => PublicResumeRo })
-  @Type(() => PublicResumeRo)
-  readonly result: PublicResumeRo;
-}
-  
-export class ResumesRo extends ResponseRo {
-  @ApiProperty({ nullable: false, type: () => [PublicResumeRo] })
-  @Type(() => PublicResumeRo)
-  readonly result: PublicResumeRo[];
+export class PublicResumeRo extends ResponseRo {
+  @ApiProperty({ nullable: false, type: () => PublicResume })
+  @Type(() => PublicResume)
+  readonly result: PublicResume;
 }

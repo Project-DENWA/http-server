@@ -95,7 +95,7 @@ export class PrivateWork {
         id: work.user.id,
         fullname: work.user.fullname,
         bio: work.user.bio,
-        email: work.user.email,
+        verified: work.user.verified,
         meta: work.user.meta,
         avatar: work.user.avatar,
       };

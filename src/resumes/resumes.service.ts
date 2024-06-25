@@ -75,20 +75,20 @@ export class ResumesService {
         })
     }
 
-    public async getAll() {
-        const users = await this.resumesRepository.find({
-            relations: {
-                social: true,
-                user: {
-                    avatar: true,
-                },
-                resumeCategories: true,
-                resumeLanguages: true,
-            },
-          });
+    // public async getAll() {
+    //     const users = await this.resumesRepository.find({
+    //         relations: {
+    //             social: true,
+    //             user: {
+    //                 avatar: true,
+    //             },
+    //             resumeCategories: true,
+    //             resumeLanguages: true,
+    //         },
+    //       });
       
-          return users.map((user) => new PublicResumeRo(user));
-    }
+    //       return users.map((user) => new PublicResumeRo(user));
+    // }
 
     public async getResume({
         id,

@@ -47,7 +47,7 @@ export class PublicWork {
   public deadline: Date;
 
   @ApiProperty({ example: '100', description: 'Number of views' })
-  views: number;
+  public views: number;
 
   @ApiProperty({
     type: () => WorkStatus,
@@ -87,7 +87,7 @@ export class PublicWork {
       id: work.user.id,
       fullname: work.user.fullname,
       bio: work.user.bio,
-      email: work.user.email,
+      verified: work.user.verified,
       meta: work.user.meta,
       avatar: work.user.avatar,
     };

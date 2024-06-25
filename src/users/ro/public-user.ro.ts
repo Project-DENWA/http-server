@@ -1,22 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import ResponseRo from 'src/common/ro/Response.ro';
 import { UserModel } from 'src/models/user.model';
-
-class EmailRo {
-  @ApiProperty({
-    example: 'afb5bb5c-a88f-4f83-b6b0-c87fd349fdf1',
-    description: 'Unique email ID.',
-  })
-  readonly id: string;
-
-  @ApiProperty({
-    example: 'example@email.com',
-    description: 'Account email address.',
-  })
-  readonly email: string;
-
-  @ApiProperty({ example: true, description: 'Email verification status' })
-  readonly verified: boolean;
-}
 
 class AvatarRo {
   @ApiProperty({
@@ -70,6 +55,12 @@ export class PublicUser {
 
   @ApiProperty({ example: 'Bio of a user', description: 'Bio description' })
   public bio: string;
+  
+  @ApiProperty({
+    example: true,
+    description: 'Verification of good person',
+  })
+  verified: boolean;
 
   @ApiProperty({
     example: '2023-12-11 23:08:02.949+07',
@@ -80,9 +71,6 @@ export class PublicUser {
   @ApiProperty({ type: MetaRo, description: 'User meta.' })
   readonly meta: MetaRo;
 
-  @ApiProperty({ type: EmailRo, description: 'Email information.' })
-  readonly email: EmailRo;
-
   @ApiProperty({ type: AvatarRo, description: 'User avatar.' })
   readonly avatar: AvatarRo;
 
@@ -90,9 +78,16 @@ export class PublicUser {
     this.id = user.id;
     this.fullname = user.fullname;
     this.bio = user.bio;
+    this.verified = user.verified;
     this.createdAt = user.created_at.getTime().toString();
     this.meta = user.meta;
-    this.email = user.email;
     this.avatar = user.avatar;
   }
 }
+
+export class PublicUserRo extends ResponseRo {
+  @ApiProperty({ nullable: false, type: () => PublicUser })
+  @Type(() => PublicUser)
+  readonly result: PublicUser;
+}
+
